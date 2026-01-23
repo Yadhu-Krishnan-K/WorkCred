@@ -1,34 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function CompanyLogin() {
+export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
 
   const [data, setData] = useState({
     email: "",
     password: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    const res = await fetch("/api/company/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+    const res = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false, // IMPORTANT
     });
 
-    const result = await res.json();
+    setLoading(false);
 
-    if (res.ok) {
-      console.log("Login successful");
-      router.push("/dashboard/company");
+    if (res?.ok) {
+      router.push("/home/company");
     } else {
-      alert(result.message);
+      alert("Invalid email or password");
     }
   };
 
@@ -41,8 +44,14 @@ export default function CompanyLogin() {
         </h1>
 
         <p className="mt-2 text-gray-600">
-          Login to manage your company profile
+          Login to manage your company account
         </p>
+
+        {error && (
+          <p className="mt-3 text-sm text-red-500">
+            Login failed. Please try again.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <input
@@ -53,6 +62,7 @@ export default function CompanyLogin() {
               setData({ ...data, email: e.target.value })
             }
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+            required
           />
 
           <input
@@ -63,13 +73,15 @@ export default function CompanyLogin() {
               setData({ ...data, password: e.target.value })
             }
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+            required
           />
 
           <button
             type="submit"
-            className="w-full py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition"
+            disabled={loading}
+            className="w-full py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition disabled:opacity-50"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
