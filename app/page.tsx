@@ -1,65 +1,222 @@
+
+
+
+// "use client";
+
+// import { motion } from "framer-motion";
+// import Image from "next/image";
+
+// export default function Home() {
+//   return (
+//     <div className="min-h-screen flex flex-col">
+//       {/* Navbar */}
+//       <div className="flex items-center justify-between px-6 py-4">
+//         <h1 className="text-2xl font-extrabold bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+//           WorkCred
+//         </h1>
+
+//         <div className="space-x-4">
+//           <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black">
+//             Login
+//           </button>
+//           <button className="px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded hover:bg-amber-600">
+//             Register
+//           </button>
+//         </div>
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="flex-grow">
+//         <div className="grid grid-cols-1 md:grid-cols-2 items-center px-10 py-16 gap-10">
+          
+//           {/* Left Content */}
+//           <motion.div
+//             initial={{ opacity: 0, y: 40 }}
+//             animate={{ opacity: 1, y: 0 }}
+//             transition={{ duration: 0.8 }}
+//           >
+//             <h1 className="text-4xl font-bold leading-tight">
+//               Discover the <span className="text-amber-500">Best Companies</span>,  
+//               Trusted Employees & Freelancers
+//             </h1>
+
+//             <p className="mt-4 text-gray-600">
+//               WorkCred is a trusted platform for company reviews, employee ratings,
+//               and freelancing credibility — all in one place.
+//             </p>
+
+//             {/* ⭐ Rating Box */}
+//             <motion.div
+//               initial={{ opacity: 0, y: 10 }}
+//               animate={{ opacity: 1, y: 0 }}
+//               transition={{ delay: 0.4 }}
+//               whileHover={{ scale: 1.03 }}
+//               className="mt-6 mb-6 inline-flex items-center gap-4 px-5 py-3 rounded-xl 
+//                          bg-white/80 backdrop-blur 
+//                          shadow-md ring-1 ring-amber-200"
+//             >
+//               <div className="flex text-amber-500 text-xl">
+//                 ★ ★ ★ ★ ★
+//               </div>
+
+//               <div className="flex flex-col leading-tight">
+//                 <span className="text-sm font-semibold text-gray-800">
+//                   5.0 Rating
+//                 </span>
+//                 <span className="text-xs text-gray-500">
+//                   Trusted by stars
+//                 </span>
+//               </div>
+//             </motion.div>
+
+//             {/* CTA */}
+//             <button className="px-6 py-3 ml-6 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition">
+//               Join WorkCred
+//             </button>
+//           </motion.div>
+
+//           {/* Right Image */}
+//           <motion.div
+//             initial={{ opacity: 0, scale: 0.9 }}
+//             animate={{ opacity: 1, scale: 1 }}
+//             transition={{ duration: 0.8, delay: 0.2 }}
+//             className="flex justify-center"
+//           >
+//             <Image
+//               src="/hero.png"
+//               alt="Career Growth"
+//               width={500}
+//               height={500}
+//               className="rounded-lg"
+//             />
+//           </motion.div>
+
+//         </div>
+//       </div>
+
+//       {/* Footer (ALWAYS at bottom) */}
+//       <footer className="flex items-center justify-center px-6 py-4">
+//         <p className="text-sm text-gray-500">
+//           © 2026{" "}
+//           <span className="font-semibold bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+//             WorkCred
+//           </span>
+//           . All rights reserved.
+//         </p>
+//       </footer>
+//     </div>
+//   );
+// }
+  
+"use client";
+
+import { motion } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen flex flex-col">
+      {/* Navbar */}
+      <div className="flex items-center justify-between px-6 py-4">
+        <h1 className="text-2xl font-extrabold bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+          WorkCred
+        </h1>
+
+        <div className="space-x-4">
+          <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-black">
+            Login
+          </button>
+          <button className="px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded hover:bg-amber-600">
+            Register
+          </button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-grow">
+        <div className="grid grid-cols-1 md:grid-cols-2 items-center px-10 py-16 gap-10">
+          
+          {/* Left Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h1 className="text-4xl font-bold leading-tight">
+              Discover the <span className="text-amber-500">Best Companies</span>,  
+              Trusted Employees & Freelancers
+            </h1>
+
+            <p className="mt-4 text-gray-600">
+              WorkCred is a trusted platform for company reviews, employee ratings,
+              and freelancing credibility — all in one place.
+            </p>
+
+            {/* ⭐ Rating Box */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              whileHover={{ scale: 1.03 }}
+              className="mt-6 mb-6 inline-flex items-center gap-4 px-5 py-3 rounded-xl 
+                         bg-white/80 backdrop-blur 
+                         shadow-md ring-1 ring-amber-200"
+            >
+              <div className="flex text-amber-500 text-xl">
+                ★ ★ ★ ★ ★
+              </div>
+
+              <div className="flex flex-col leading-tight">
+                <span className="text-sm font-semibold text-gray-800">
+                  5.0 Rating
+                </span>
+                <span className="text-xs text-gray-500">
+                  Trusted by stars
+                </span>
+              </div>
+            </motion.div>
+
+            {/* CTA */}
+            <button
+              onClick={() => router.push("/join")}
+              className="px-6 py-3 ml-6 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition"
+            >
+              Join WorkCred
+            </button>
+          </motion.div>
+
+          {/* Right Image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="flex justify-center"
           >
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+              src="/hero.png"
+              alt="Career Growth"
+              width={500}
+              height={500}
+              className="rounded-lg"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </motion.div>
+
         </div>
-      </main>
+      </div>
+
+      {/* Footer */}
+      <footer className="flex items-center justify-center px-6 py-4">
+        <p className="text-sm text-gray-500">
+          © 2026{" "}
+          <span className="font-semibold bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+            WorkCred
+          </span>
+          . All rights reserved.
+        </p>
+      </footer>
     </div>
   );
 }
