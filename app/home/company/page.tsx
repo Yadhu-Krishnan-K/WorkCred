@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaRegUserCircle, FaUserTie } from "react-icons/fa";
 import { MdNotificationsActive } from "react-icons/md";
@@ -38,39 +37,34 @@ const candidates: Candidate[] = [
     description:
       "Backend-focused engineer skilled in scalable APIs and authentication systems.",
   },
-  
+
 ];
 
 export default function CompanyHome() {
-  const router = useRouter();
   const [selected, setSelected] = useState<Candidate>(candidates[0]);
+  const [showDetails, setShowDetails] = useState(false);
 
   const handleSelect = (candidate: Candidate) => {
-    // Mobile → navigate
-    if (window.innerWidth < 1024) {
-      router.push(`/company/candidate/${candidate.id}`);
-      return;
-    }
-
     // Desktop → inline view
     setSelected(candidate);
+    setShowDetails(true); // mobile will use this
   };
 
   return (
     <div className="min-h-screen">
       {/* Navbar */}
       <div className="flex items-center justify-between px-6 py-4">
-          <h1 className="text-2xl font-extrabold bg-linear-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-extrabold bg-linear-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
           WorkCred
-          </h1>
-          <div className="flex justify-between items-center w-48 h-auto">
-            <div className="w-8 h-8">
-                <MdNotificationsActive className="w-full h-full text-amber-500 cursor-pointer" />
-            </div>
-            <div className="w-8 h-8">
-                <FaRegUserCircle className="w-full h-full text-amber-500 cursor-pointer" />
-            </div>
+        </h1>
+        <div className="flex justify-between items-center w-48 h-auto">
+          <div className="w-8 h-8">
+            <MdNotificationsActive className="w-full h-full text-amber-500 cursor-pointer" />
           </div>
+          <div className="w-8 h-8">
+            <FaRegUserCircle className="w-full h-full text-amber-500 cursor-pointer" />
+          </div>
+        </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-screen">
 
@@ -78,7 +72,10 @@ export default function CompanyHome() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-white rounded-2xl shadow-md ring-1 ring-gray-100 p-5"
+          className={`
+          bg-white rounded-2xl shadow-md ring-1 ring-gray-100 p-5
+            ${showDetails ? "hidden lg:block" : "block"}
+          `}
         >
           <h2 className="text-lg font-semibold mb-4">Candidates</h2>
 
@@ -89,10 +86,9 @@ export default function CompanyHome() {
                 whileHover={{ scale: 1.02 }}
                 onClick={() => handleSelect(candidate)}
                 className={`cursor-pointer p-4 rounded-xl border transition
-                  ${
-                    selected.id === candidate.id
-                      ? "border-amber-400 bg-amber-50"
-                      : "border-gray-200 hover:border-amber-300"
+                  ${selected.id === candidate.id
+                    ? "border-amber-400 bg-amber-50"
+                    : "border-gray-200 hover:border-amber-300"
                   }`}
               >
                 <div className="flex items-center gap-3">
@@ -114,9 +110,16 @@ export default function CompanyHome() {
           key={selected.id}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="hidden lg:block lg:col-span-2 bg-white rounded-2xl shadow-md ring-1 ring-gray-100 p-6"
+          className={`
+            bg-white rounded-2xl shadow-md ring-1 ring-gray-100 p-6
+            ${showDetails ? "block" : "hidden"}
+            lg:block lg:col-span-2
+          `}
         >
-          <CandidateDetails candidate={selected} />
+          <CandidateDetails
+            candidate={selected}
+            onBack={() => setShowDetails(false)}
+          />
         </motion.div>
       </div>
       {/* Footer (ALWAYS at bottom) */}
@@ -135,51 +138,68 @@ export default function CompanyHome() {
 
 /* ----------------- Reusable Details Component ----------------- */
 
-function CandidateDetails({ candidate }: { candidate: Candidate }) {
+function CandidateDetails({
+  candidate,
+  onBack,
+}: {
+  candidate: Candidate;
+  onBack: () => void;
+}) {
+
   return (
-    <div className="flex">
-        <div className="w-1/3 h-auto flex flex-col justify-center">
-            <div className="w-32 h-32">
-                <FaRegUserCircle className="w-full h-full text-blue-500 cursor-pointer" />
-            </div>
-            <h2 className="text-xl font-semibold">{candidate.name}</h2>
+    <>
+      {/* Mobile back button */}
+      <button
+        onClick={onBack}
+        className="mb-4 text-sm text-amber-600 lg:hidden"
+      >
+        ← Back to candidates
+      </button>
+
+      <div className="flex flex-col md:flex-row">
+        <div className="w-full h-auto flex flex-col justify-center items-center sm:justify-start sm:items-start">
+          <div className="w-32 h-32">
+            <FaRegUserCircle className="w-full h-full text-blue-500 cursor-pointer" />
+          </div>
+          <h2 className="text-xl font-semibold">{candidate.name}</h2>
         </div>
-        <div className="w-2/3 h-auto">
-            
-            <p className="text-xl font-semibold">{candidate.role}</p>
+        <div className="w-full h-auto flex flex-col justify-center items-center sm:justify-start sm:items-start">
 
-            <div className="mt-4 flex gap-8 text-sm">
-                <p>
-                <span className="text-gray-500">Experience:</span>{" "}
-                {candidate.experience}
-                </p>
-                <p className="text-amber-500">
-                ⭐ {candidate.rating}
-                </p>
-            </div>
+          <p className="text-xl font-semibold">{candidate.role}</p>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-                {candidate.skills.map((skill) => (
-                <span
-                    key={skill}
-                    className="px-3 py-1 rounded-full bg-amber-100 text-amber-600 text-sm"
-                >
-                    {skill}
-                </span>
-                ))}
-            </div>
-
-            <p className="mt-6 text-gray-600 text-sm leading-relaxed">
-                {candidate.description}
+          <div className="mt-4 flex gap-8 text-sm">
+            <p>
+              <span className="text-gray-500">Experience:</span>{" "}
+              {candidate.experience}
             </p>
+            <p className="text-amber-500">
+              ⭐ {candidate.rating}
+            </p>
+          </div>
 
-            <button className="mt-8 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-                Accept
+          <div className="mt-5 flex flex-wrap gap-2">
+            {candidate.skills.map((skill) => (
+              <span
+                key={skill}
+                className="px-3 py-1 rounded-full bg-amber-100 text-amber-600 text-sm"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+
+          <p className="mt-6 text-gray-600 text-sm leading-relaxed">
+            {candidate.description}
+          </p>
+
+            <button className="mt-8 px-6 py-3 w-full bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+              Accept
             </button>
-            <button className="mt-8 ms-2 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
-                Decline
+            <button className="mt-8 px-6 py-3 w-full bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+              Decline
             </button>
         </div>
-    </div>
+      </div>
+    </>
   );
 }
