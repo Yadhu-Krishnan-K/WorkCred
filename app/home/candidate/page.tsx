@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { FaRegUserCircle, FaArrowRight } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 const categories = [
   { title: "IT", desc: "Software, Cloud & AI solutions." },
@@ -13,6 +14,12 @@ const categories = [
 ];
 
 export default function CandidateHome() {
+  const router = useRouter()
+
+  function toProfile(){
+    router.push('/profile/candidate')
+  }
+
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden bg-slate-50">
       
@@ -34,7 +41,7 @@ export default function CandidateHome() {
           whileHover={{ scale: 1.1, rotate: 5 }}
           className="w-9 h-9 flex items-center justify-center rounded-full bg-amber-50 shadow-sm border border-amber-200 cursor-pointer"
         >
-          <FaRegUserCircle className="w-6 h-6 text-amber-600" />
+          <FaRegUserCircle className="w-6 h-6 text-amber-600" onClick={toProfile} />
         </motion.div>
       </nav>
 
