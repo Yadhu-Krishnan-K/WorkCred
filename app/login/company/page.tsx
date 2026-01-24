@@ -20,7 +20,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    const res = await signIn("credentials", {
+    const res = await signIn("company-credentials", {
       email: data.email,
       password: data.password,
       redirect: false, // IMPORTANT
