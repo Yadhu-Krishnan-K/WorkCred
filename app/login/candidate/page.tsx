@@ -29,7 +29,7 @@ export default function CandidateLoginPage() {
     setLoading(false);
 
     if (res?.ok) {
-      router.push("/dashboard/candidate");
+      router.push("/home/candidate");
     } else {
       alert("Invalid email or password");
     }
