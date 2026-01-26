@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   FaRegUserCircle, 
@@ -11,7 +12,17 @@ import {
   FaLightbulb
 } from "react-icons/fa";
 
-// Data representing the single chosen field
+// Types
+export interface CandidateProfileResponse {
+  id: string;
+  fullName: string;
+  email: string;
+  isVerified: boolean;
+  createdAt: string; 
+  updatedAt: string;
+}
+
+// Mock Data
 const activeField = { 
   title: "IT", 
   focus: "Software, Cloud & AI solutions", 
@@ -30,6 +41,44 @@ const pastRatings = [
 ];
 
 export default function CandidateProfile() {
+  const [candidate, setCandidate] = useState<CandidateProfileResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCandidate = async () => {
+      try {
+        const res = await fetch('/api/profile/candidate');
+        if (!res.ok) throw new Error('Failed to fetch candidate');
+        const data = await res.json();
+        setCandidate(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+        // Fallback for development if API isn't running
+        setCandidate({
+          id: "1",
+          fullName: "Alex Rivera",
+          email: "alex@example.com",
+          isVerified: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCandidate();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden bg-slate-50 text-slate-900">
       
@@ -65,11 +114,13 @@ export default function CandidateProfile() {
           </div>
           
           <div className="text-center md:text-left grow">
-            <h2 className="text-3xl font-black text-slate-800 tracking-tight">Alex Johnson</h2>
+            <h2 className="text-3xl font-black text-slate-800 tracking-tight">{candidate?.fullName}</h2>
             <p className="text-emerald-600 font-semibold uppercase tracking-widest text-xs mt-1">Certified Specialist</p>
             <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-3">
                 <span className="px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-600 border border-slate-200">BENGALURU, IN</span>
-                <span className="px-4 py-1.5 bg-amber-50 rounded-full text-xs font-bold text-amber-700 border border-amber-200">Verified ID</span>
+                <span className="px-4 py-1.5 bg-amber-50 rounded-full text-xs font-bold text-amber-700 border border-amber-200">
+                    {candidate?.isVerified ? "Verified ID" : "Pending Verification"}
+                </span>
             </div>
           </div>
         </motion.section>
@@ -87,7 +138,7 @@ export default function CandidateProfile() {
               </h3>
               <motion.div 
                 whileHover={{ y: -5 }}
-                className="relative overflow-hidden bg-slate-900 rounded-[2rem] p-8 text-white shadow-2xl"
+                className="relative overflow-hidden bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl"
               >
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div>
@@ -101,7 +152,6 @@ export default function CandidateProfile() {
                     <p className="text-xs text-slate-400 mt-2">Member since {activeField.joinedDate}</p>
                   </div>
                 </div>
-                {/* Decorative BG for the Field Card */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full -mr-20 -mt-20 blur-3xl" />
               </motion.div>
             </div>
