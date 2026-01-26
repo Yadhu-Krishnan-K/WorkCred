@@ -27,18 +27,6 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
       {/* Background glow - Slightly different color to signal "Enrolled" state */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-100/40 blur-[120px]" />
 
-      {/* Navbar (Same as previous) */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-gray-200/50 flex items-center justify-between px-8 py-4">
-        <h1 className="text-2xl font-black bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-          WorkCred
-        </h1>
-        <div 
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-50 shadow-sm border border-emerald-200 cursor-pointer"
-          onClick={() => router.push("/profile/candidate")}
-        >
-          <FaRegUserCircle className="w-6 h-6 text-emerald-600" />
-        </div>
-      </nav>
 
       {/* Main Content */}
       <main className="relative grow container mx-auto px-6 py-12">
@@ -86,6 +74,10 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
                     </div>
                   </motion.div>
                 ))}
+                
+              </div>
+              <div className="text-gray-400 font-semibold mt-2 w-full text-end pt-2">
+                <button className="p-1 border border-dashed rounded-2xl border-gray-300 cursor-pointer">...Load more</button>
               </div>
             </section>
 
@@ -105,6 +97,9 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="text-gray-400 font-semibold mt-2 w-full text-end pt-2">
+                <button className="p-1 border border-dashed rounded-2xl border-gray-300 cursor-pointer">...Load more</button>
               </div>
             </section>
           </div>
@@ -135,12 +130,6 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-10 border-t-blue-100 bg-white/50 backdrop-blur-md text-center">
-        <p className="text-sm text-gray-400">
-          © 2026 <span className="font-bold text-slate-700">WorkCred</span>
-        </p>
-      </footer>
     </div>
   );
 }
