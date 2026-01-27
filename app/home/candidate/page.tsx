@@ -1,8 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FaRegUserCircle, FaArrowRight } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { FaArrowRight } from "react-icons/fa";
 
 const categories = [
   { title: "IT", desc: "Software, Cloud & AI solutions." },
@@ -14,12 +13,6 @@ const categories = [
 ];
 
 export default function CandidateHome() {
-  const router = useRouter();
-
-  function toProfile() {
-    router.push("/profile/candidate");
-  }
-
   // ✅ Stripe Enroll Logic
   const handleEnroll = async (category: string) => {
     const res = await fetch("/api/stripe/checkout", {
@@ -36,33 +29,14 @@ export default function CandidateHome() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col overflow-hidden bg-slate-50">
+    <div className="relative min-h-screen overflow-hidden bg-slate-50">
       
       {/* Background glow */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-200/40 blur-[120px] animate-pulse" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-200/30 blur-[120px]" />
 
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-gray-200/50 flex items-center justify-between px-8 py-4">
-        <motion.h1
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="text-2xl font-black bg-gradient-to-r from-amber-500 via-orange-600 to-red-500 bg-clip-text text-transparent"
-        >
-          WorkCred
-        </motion.h1>
-
-        <motion.div
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-amber-50 shadow-sm border border-amber-200 cursor-pointer"
-          onClick={toProfile}
-        >
-          <FaRegUserCircle className="w-6 h-6 text-amber-600" />
-        </motion.div>
-      </nav>
-
       {/* Main */}
-      <main className="relative grow container mx-auto px-6 py-20">
+      <main className="relative container mx-auto px-6 py-20">
         <header className="mb-16 text-center">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -112,13 +86,6 @@ export default function CandidateHome() {
           ))}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="py-10 border-t bg-white/50 backdrop-blur-md text-center">
-        <p className="text-sm text-gray-400">
-          © 2026 <span className="font-bold text-slate-700">WorkCred</span>
-        </p>
-      </footer>
     </div>
   );
 }

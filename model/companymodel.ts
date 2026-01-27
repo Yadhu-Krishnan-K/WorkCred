@@ -8,6 +8,12 @@ export interface CompanyDocument extends Document {
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+   description:string;
+   city:string;
+
+  profileImageUrl?: string;
+  profileImagePublicId?: string;
+  
 }
 
 const CompanySchema = new Schema<CompanyDocument>(
@@ -25,6 +31,24 @@ const CompanySchema = new Schema<CompanyDocument>(
       lowercase: true,
     },
     password: {
+  type: String,
+  required: true,
+},
+ description: {
+      type: String,
+      default: "",
+      maxlength: 1000,
+    },
+profileImageUrl: {
+      type: String,
+      default: null,
+    },
+
+    profileImagePublicId: {
+      type: String,
+      default: null,
+    },
+     city: {
   type: String,
   required: true,
 },
