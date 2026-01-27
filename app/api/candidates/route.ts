@@ -6,10 +6,13 @@ import Candidate from "@/model/candidatemodel";
  * GET /api/candidates
  */
 export async function GET() {
+  console.log("route reached")
   try {
+    console.log("route reached")
     await connectDB();
 
     const candidates = await Candidate.find().lean();
+    console.log("candidates:",candidates)
 
     return NextResponse.json(
       { success: true, data: candidates },
