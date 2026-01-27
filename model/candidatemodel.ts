@@ -70,6 +70,10 @@ export interface CandidateDocument extends Document {
   email: string;
   password: string;
   isVerified: boolean;
+
+  profileImageUrl?: string;
+  profileImagePublicId?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -97,6 +101,15 @@ const CandidateSchema = new Schema<CandidateDocument>(
     isVerified: {
       type: Boolean,
       default: false,
+    },
+    profileImageUrl: {
+      type: String,
+      default: null,
+    },
+
+    profileImagePublicId: {
+      type: String,
+      default: null,
     },
   },
   {

@@ -79,6 +79,23 @@ export default function CandidateProfile() {
     );
   }
 
+  const [file, setFile] = useState<File | null>(null)
+  
+  const handleUpload = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/upload/profile-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    console.log(data);
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden bg-slate-50 text-slate-900">
       
@@ -88,7 +105,7 @@ export default function CandidateProfile() {
 
       {/* Navbar */}
       <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-gray-200/50 flex items-center justify-between px-8 py-4">
-        <h1 className="text-2xl font-black bg-gradient-to-r from-amber-500 via-orange-600 to-red-500 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-black bg-linear-to-r from-amber-500 via-orange-600 to-red-500 bg-clip-text text-transparent">
           WorkCred
         </h1>
         <div className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-50 border border-emerald-200">
@@ -105,9 +122,13 @@ export default function CandidateProfile() {
           className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-8 border border-white shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-center gap-8"
         >
           <div className="relative">
-            <div className="w-32 h-32 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg">
+            <div className="w-32 h-32 rounded-3xl bg-linear-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg">
                 <FaRegUserCircle className="w-20 h-20" />
             </div>
+            <input type="file" 
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+            />
+            <button onClick={handleUpload}>Upload</button>
             <div className="absolute -bottom-2 -right-2 bg-amber-400 text-white p-2 rounded-xl shadow-lg">
                 <FaAward />
             </div>
