@@ -113,8 +113,8 @@ export default function CandidateProfile() {
   e.preventDefault();
 
   try {
-    const res = await fetch('/api/profile/candidate/update', {
-      method: 'PUT',
+    const res = await fetch('/api/profile/candidate/updateDetails', {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editData),
     });
@@ -133,7 +133,6 @@ export default function CandidateProfile() {
           }
         : null
     );
-
     setIsModalOpen(false);
   } catch (err) {
     alert("Error updating profile");
