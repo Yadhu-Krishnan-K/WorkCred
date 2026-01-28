@@ -72,15 +72,7 @@ export default function CandidateProfile() {
         setCandidate(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
-        // Fallback for development if API isn't running
-        // setCandidate({
-        //   id: "1",
-        //   fullName: "Alex Rivera",
-        //   email: "alex@example.com",
-        //   isVerified: true,
-        //   createdAt: new Date().toISOString(),
-        //   updatedAt: new Date().toISOString()
-        // });
+        
       } finally {
         setIsLoading(false);
       }
@@ -486,5 +478,3 @@ export default function CandidateProfile() {
     </div>
   );
 }
-
-
