@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       imageUrl: candidate.profileImageUrl,
     });
   } catch (error) {
-    console.error(error);
+    console.log('error = ',error);
     return NextResponse.json(
       { message: "Upload failed" },
       { status: 500 }

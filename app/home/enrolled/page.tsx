@@ -3,6 +3,11 @@
 import { motion } from "framer-motion";
 import { FaRegUserCircle, FaBriefcase, FaLaptopCode, FaBuilding } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
+import JobDetailsModal from "@/components/candidate/JobDetailsModal"; // The new component below
+import GigDetailsModal from "@/components/candidate/GigDetailsModal";
+import CompanyDetailsModal from "@/components/candidate/CompanyDetailsModal";
 
 // Example Mock Data - In a real app, you'd fetch this based on the 'selectedField'
 const jobs = [
@@ -21,7 +26,10 @@ interface EnrolledHomeProps {
 
 export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
   const router = useRouter();
-
+  const [selectedJob, setSelectedJob] = useState<{id:number,title:string, company:string, type:string, salary:string} | null>(null);
+  const [selectedGig, setSelectedGig] = useState<{ id: number, title: string, budget: string, duration: string } | null>(null);
+  const [selectedCo, setSelectedCo] = useState<{name:string} | null>(null);
+  
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden bg-slate-50">
       {/* Background glow - Slightly different color to signal "Enrolled" state */}
@@ -30,11 +38,11 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
 
       {/* Main Content */}
       <main className="relative grow container mx-auto px-6 py-12">
-        
+
         {/* Header Section */}
         <header className="mb-12">
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row md:items-end justify-between gap-4"
           >
@@ -51,10 +59,10 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Column 1 & 2: Opportunities */}
           <div className="lg:col-span-2 space-y-8">
-            
+
             {/* Jobs Section */}
             <section>
               <div className="flex items-center gap-2 mb-4">
@@ -63,7 +71,11 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
               </div>
               <div className="space-y-4">
                 {jobs.map((job) => (
-                  <motion.div key={job.id} whileHover={{ x: 5 }} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                  <motion.div
+                    key={job.id}
+                    onClick={() => setSelectedJob(job)} // Open on click
+                    className="cursor-pointer group bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center"
+                  >
                     <div>
                       <h4 className="font-bold text-slate-800">{job.title}</h4>
                       <p className="text-sm text-slate-500">{job.company} • {job.type}</p>
@@ -74,7 +86,7 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
                     </div>
                   </motion.div>
                 ))}
-                
+
               </div>
               <div className="text-gray-400 font-semibold mt-2 w-full text-end pt-2">
                 <button className="p-1 border border-dashed rounded-2xl border-gray-300 cursor-pointer">...Load more</button>
@@ -89,7 +101,11 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {freelance.map((gig) => (
-                  <div key={gig.id} className="bg-emerald-900 text-white p-5 rounded-2xl shadow-lg">
+                  <div 
+                    key={gig.id} 
+                    onClick={() => setSelectedGig(gig)} // Open on click
+                    className="cursor-pointer hover:brightness-110 active:scale-95 transition-all bg-emerald-900 text-white p-5 rounded-2xl shadow-lg"
+                  >
                     <h4 className="font-bold text-lg">{gig.title}</h4>
                     <div className="mt-4 flex justify-between items-center">
                       <span className="bg-emerald-800 px-3 py-1 rounded-lg text-xs">{gig.budget}</span>
@@ -113,7 +129,11 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
               </div>
               <div className="space-y-4">
                 {["Google", "Microsoft", "Zoho", "Atlassian"].map((co) => (
-                  <div key={co} className="flex items-center gap-3">
+                  <div 
+                    key={co} 
+                    onClick={() => setSelectedCo({ name: co })} // Open on click
+                    className="cursor-pointer hover:bg-slate-50 p-2 rounded-xl transition-all flex items-center gap-3"
+                  >
                     <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-400">
                       {co[0]}
                     </div>
@@ -129,7 +149,16 @@ export default function EnrolledHome({ selectedField }: EnrolledHomeProps) {
 
         </div>
       </main>
-
+      <AnimatePresence>
+        {selectedJob && (
+          <JobDetailsModal
+            job={selectedJob}
+            onClose={() => setSelectedJob(null)}
+          />
+        )}
+        {selectedGig && <GigDetailsModal gig={selectedGig} onClose={() => setSelectedGig(null)} />}
+        {selectedCo && <CompanyDetailsModal co={selectedCo} onClose={() => setSelectedCo(null)} />}
+      </AnimatePresence>
     </div>
   );
 }

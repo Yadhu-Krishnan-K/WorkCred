@@ -12,6 +12,7 @@ import {
   FaAward,
   FaLightbulb
 } from "react-icons/fa";
+import { div } from "framer-motion/client";
 
 // Types
 export interface CandidateProfileResponse {
@@ -52,6 +53,7 @@ export default function CandidateProfile() {
   const [file, setFile] = useState<File | null>(null)
   const [candidate, setCandidate] = useState<CandidateProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isuploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -138,6 +140,7 @@ export default function CandidateProfile() {
   formData.append("file", file);
 
   try {
+    setIsUploading(true)
     const res = await fetch("/api/upload/profile-image", {
       method: "POST",
       body: formData,
@@ -146,13 +149,16 @@ export default function CandidateProfile() {
     if (!res.ok) throw new Error("Upload failed");
 
     const data = await res.json();
-
+    console.log('data = ',data)
     // 🔥 Update profile image instantly
     setCandidate(prev =>
-      prev ? { ...prev, profileImageUrl: data.url } : null
+      prev ? { ...prev, profileImageUrl: data.imageUrl } : null
     );
   } catch (err) {
+    console.log('error = ',err)
     alert("Image upload failed");
+  }finally{
+    setIsUploading(false)
   }
 };
 
@@ -186,13 +192,19 @@ export default function CandidateProfile() {
           <div className="relative group mx-auto lg:mx-0">
             <div className="w-40 h-40 rounded-[2.5rem] bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 p-1 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
               <div className="w-full h-full rounded-[2.3rem] bg-white overflow-hidden relative">
-                {candidate?.profileImageUrl ? (
-                  <Image src={candidate.profileImageUrl} alt="Profile" fill className="object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-50">
-                    <FaRegUserCircle className="w-20 h-20 text-slate-200" />
+                {
+                isuploading?(
+                  <div className="w-full h-full flex justify-center items-center">
+                    <div className="w-6 h-6 border-2 border-fuchsia-500 border-t-white rounded-full animate-spin" />
                   </div>
-                )}
+              )
+                :candidate?.profileImageUrl ? (
+                  <Image src={candidate.profileImageUrl} alt="Profile" fill className="object-cover" />
+                ) :
+                 (<div className="w-full h-full flex items-center justify-center bg-slate-50">
+                    <FaRegUserCircle className="w-20 h-20 text-slate-200" />
+                  </div>)
+                }
               </div>
             </div>
 
@@ -364,7 +376,6 @@ export default function CandidateProfile() {
       <footer className="py-10 border-t border-gray-100 text-center">
         <p className="text-xs text-gray-400">© 2026 <span className="font-bold text-slate-700 uppercase">WorkCred</span> — Professional Portfolio</p>
       </footer>
-
 
 
     <AnimatePresence>
