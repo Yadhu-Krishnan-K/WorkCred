@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+
 import { motion } from "framer-motion";
 import {
   FaBuilding,
@@ -30,6 +32,8 @@ type Company = {
 };
 
 export default function CompanyProfile() {
+  const router = useRouter();
+
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -298,9 +302,13 @@ export default function CompanyProfile() {
             DASHBOARD BUTTON
         ===================== */}
         <div className="max-w-sm">
-          <button className="w-full py-4 rounded-2xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-500 shadow-lg shadow-emerald-100 transition-all flex items-center justify-center gap-2">
-            Open Dashboard <FaArrowRight />
-          </button>
+         <button
+  onClick={() => router.push("/dashboard")}
+  className="w-full py-4 rounded-2xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-500 shadow-lg shadow-emerald-100 transition-all flex items-center justify-center gap-2"
+>
+  Open Dashboard <FaArrowRight />
+</button>
+
         </div>
       </main>
 
