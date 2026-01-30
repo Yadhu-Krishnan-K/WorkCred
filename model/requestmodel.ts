@@ -11,7 +11,7 @@ export type RequestType =
   | "FREELANCE"
   | "INTERNSHIP";
 
-export type UserRole = "CANDIDATE" | "COMPANY";
+export type UserRole = "Candidate" | "Company";
 
 export interface RequestDocument extends Document {
   sender: {
@@ -24,7 +24,8 @@ export interface RequestDocument extends Document {
     id: Types.ObjectId;
   };
 
-  type: RequestType;
+  connectModel: RequestType;
+  connect_Id: Types.ObjectId;
   message?: string;
   status: RequestStatus;
 
@@ -37,7 +38,7 @@ const RequestSchema = new Schema<RequestDocument>(
     sender: {
       role: {
         type: String,
-        enum: ["CANDIDATE", "COMPANY"],
+        enum: ["Candidate", "Company"],
         required: true,
       },
       id: {
@@ -60,10 +61,16 @@ const RequestSchema = new Schema<RequestDocument>(
       },
     },
 
-    type: {
+    connectModel: {
       type: String,
       enum: ["JOB", "FREELANCE", "INTERNSHIP"],
       required: true,
+    },
+
+    connect_Id: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      refPath:"type"
     },
 
     message: {
