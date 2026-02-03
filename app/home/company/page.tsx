@@ -2,9 +2,10 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { FaRegUserCircle, FaCheckCircle } from "react-icons/fa";
 
-/* ---------------- TYPES (MATCH DB SCHEMA) ---------------- */
+
 
 type Candidate = {
   _id: string;
@@ -12,9 +13,18 @@ type Candidate = {
   email: string;
   isVerified: boolean;
   createdAt: string;
+  profileImageUrl?: string;
+
+
+  phone?: string;
+  city?: string;
+  skills?: string[];
+  experience?: string;
+  education?: string;
+  resumeUrl?: string;
 };
 
-/* ---------------- PAGE ---------------- */
+
 
 export default function CompanyHome() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -22,7 +32,6 @@ export default function CompanyHome() {
   const [selected, setSelected] = useState<Candidate | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  /* ---------------- FETCH DATA ---------------- */
 
   useEffect(() => {
     async function fetchCandidates() {
@@ -93,7 +102,21 @@ export default function CompanyHome() {
                   }`}
               >
                 <div className="flex items-center gap-3">
-                  <FaRegUserCircle className="text-emerald-500 text-xl" />
+
+                  {/* Avatar */}
+                  <div className="w-10 h-10 relative rounded-full overflow-hidden bg-emerald-50">
+                    {candidate.profileImageUrl ? (
+                      <Image
+                        src={candidate.profileImageUrl}
+                        alt={candidate.fullName}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <FaRegUserCircle className="w-full h-full text-emerald-500" />
+                    )}
+                  </div>
+
                   <div>
                     <p className="font-medium">{candidate.fullName}</p>
                     <p className="text-sm text-gray-500">
@@ -135,7 +158,6 @@ function CandidateDetails({
 }) {
   return (
     <>
-      {/* Mobile Back */}
       <button
         onClick={onBack}
         className="mb-4 text-sm text-emerald-600 lg:hidden"
@@ -145,19 +167,79 @@ function CandidateDetails({
 
       <div className="flex flex-col md:flex-row gap-6">
         <div className="flex flex-col items-center md:items-start">
-          <div className="w-32 h-32">
-            <FaRegUserCircle className="w-full h-full text-emerald-500" />
+
+          {/* Big DP */}
+          <div className="w-32 h-32 relative rounded-2xl overflow-hidden bg-emerald-50">
+            {candidate.profileImageUrl ? (
+              <Image
+                src={candidate.profileImageUrl}
+                alt={candidate.fullName}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <FaRegUserCircle className="w-full h-full text-emerald-500" />
+            )}
           </div>
+
           <h2 className="mt-4 text-xl font-semibold">
             {candidate.fullName}
           </h2>
         </div>
 
         <div className="flex-1 space-y-4">
+
           <p className="text-gray-700">
             <span className="font-semibold">Email:</span>{" "}
             {candidate.email}
           </p>
+
+          {/* ✅ Added fields — only show if present */}
+
+          {candidate.phone && (
+            <p className="text-gray-700">
+              <span className="font-semibold">Phone:</span>{" "}
+              {candidate.phone}
+            </p>
+          )}
+
+          {candidate.city && (
+            <p className="text-gray-700">
+              <span className="font-semibold">City:</span>{" "}
+              {candidate.city}
+            </p>
+          )}
+
+          {candidate.education && (
+            <p className="text-gray-700">
+              <span className="font-semibold">Education:</span>{" "}
+              {candidate.education}
+            </p>
+          )}
+
+          {candidate.experience && (
+            <p className="text-gray-700">
+              <span className="font-semibold">Experience:</span>{" "}
+              {candidate.experience}
+            </p>
+          )}
+
+          {candidate.skills && candidate.skills.length > 0 && (
+            <p className="text-gray-700">
+              <span className="font-semibold">Skills:</span>{" "}
+              {candidate.skills.join(", ")}
+            </p>
+          )}
+
+          {candidate.resumeUrl && (
+            <a
+              href={candidate.resumeUrl}
+              target="_blank"
+              className="text-emerald-600 underline"
+            >
+              View Resume
+            </a>
+          )}
 
           <p className="flex items-center gap-2">
             <span className="font-semibold">Verified:</span>
