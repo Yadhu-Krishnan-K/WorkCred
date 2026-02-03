@@ -12,6 +12,7 @@ export async function GET(
   context: { params: Promise<{ jobId: string }> }
 ) {
   try {
+    console.log('targetttttttttttttttttt')
     const { jobId } = await context.params; // ✅ FIX
 
     const session = await getServerSession(authOptions);

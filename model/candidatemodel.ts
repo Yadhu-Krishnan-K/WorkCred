@@ -1,17 +1,18 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, ObjectId } from "mongoose";
 
-export interface CandidateDocument extends Document {
+export interface CandidateDocument extends Document{
   fullName: string;
   email: string;
   password: string;
   isVerified: boolean;
 
+  stream: string;
   description?: string;
   experience?: string;          // keep string since UI uses "5+ Years"
   skills: string[];
   qualification?: string;
   avgRating: number;
-
+  
   profileImageUrl?: string;
   profileImagePublicId?: string;
 
@@ -42,6 +43,10 @@ const CandidateSchema = new Schema<CandidateDocument>(
     isVerified: {
       type: Boolean,
       default: false,
+    },
+
+    stream: {      //for the work field / eg: IT/MEDICAL... CAN ONLY SELECT ONE STREAM AT A TIME
+      type: String,
     },
 
     description: {
