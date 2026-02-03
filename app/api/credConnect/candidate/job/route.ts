@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { companyId, type, message } = body;
+    const { connectId, companyId, type, message } = body;
 
     if (!companyId || !type) {
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const existingRequest = await requestmodel.findOne({
       "sender.id": session.user.id,
       "receiver.id": companyId,
-      type,
+      connectModel: type,
       status: "PENDING",
     });
 
@@ -48,14 +48,15 @@ export async function POST(req: Request) {
 
     const newRequest = await requestmodel.create({
       sender: {
-        role: "CANDIDATE",
+        role: "Candidate",
         id: new Types.ObjectId(session.user.id),
       },
       receiver: {
-        role: "COMPANY",
+        role: "Company",
         id: new Types.ObjectId(companyId),
       },
-      type, // JOB | FREELANCE | INTERNSHIP
+      connectModel: type, // JOB | FREELANCE | INTERNSHIP
+      connect_Id:connectId,
       message,
       status: "PENDING",
     });

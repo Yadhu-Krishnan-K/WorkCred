@@ -13,7 +13,7 @@ export type RequestType =
 
 export type UserRole = "Candidate" | "Company";
 
-export interface RequestDocument extends Document {
+export interface RequestDocument extends Document {  
   sender: {
     role: UserRole;
     id: Types.ObjectId;
@@ -25,7 +25,7 @@ export interface RequestDocument extends Document {
   };
 
   connectModel: RequestType;
-  connect_Id: Types.ObjectId;
+  connect_Id: Types.ObjectId;//job/freelance/connect id
   message?: string;
   status: RequestStatus;
 
@@ -51,7 +51,7 @@ const RequestSchema = new Schema<RequestDocument>(
     receiver: {
       role: {
         type: String,
-        enum: ["CANDIDATE", "COMPANY"],
+        enum: ["Candidate", "Company"],
         required: true,
       },
       id: {
@@ -70,7 +70,7 @@ const RequestSchema = new Schema<RequestDocument>(
     connect_Id: {
       type: Schema.Types.ObjectId,
       required: true,
-      refPath:"type"
+      refPath:"connectModel"
     },
 
     message: {

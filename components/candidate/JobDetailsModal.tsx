@@ -1,9 +1,10 @@
 "use client";
 
+import { JobDocument } from "@/model/jobmodel";
 import { motion } from "framer-motion";
 import { FaTimes, FaBriefcase, FaMapMarkerAlt, FaMoneyBillWave, FaClock } from "react-icons/fa";
 
-export default function JobDetailsModal({ job, onClose }: { job: any; onClose: () => void }) {
+export default function JobDetailsModal({ job, onClose }: { job: JobDocument; onClose: () => void }) {
 
   const applyForJob = async () => {
     try {
@@ -11,11 +12,13 @@ export default function JobDetailsModal({ job, onClose }: { job: any; onClose: (
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          connectId: job._id,
           companyId: job.companyId,
-          type: "JOB",
-          message: `Applying for ${job.title}`,
+          type: "Job",
+          message: `Applying for ${job.role}`,
         }),
       });
+      console.log('res>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>',res)
       const data = await res.json();
 
       if (!res.ok) {
@@ -45,7 +48,7 @@ export default function JobDetailsModal({ job, onClose }: { job: any; onClose: (
 
       {/* Modal Content */}
       <motion.div
-        layoutId={`job-${job.id}`}
+        layoutId={`job-${job.companyId}`}
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -68,8 +71,8 @@ export default function JobDetailsModal({ job, onClose }: { job: any; onClose: (
               <FaBriefcase />
             </div>
             <div>
-              <h2 className="text-3xl font-black text-slate-900 leading-tight">{job.title}</h2>
-              <p className="text-emerald-600 font-bold tracking-wide uppercase text-sm">{job.company}</p>
+              <h2 className="text-3xl font-black text-slate-900 leading-tight">{job.role}</h2>
+              <p className="text-emerald-600 font-bold tracking-wide uppercase text-sm">{job.role}</p>
             </div>
           </div>
 
@@ -78,13 +81,13 @@ export default function JobDetailsModal({ job, onClose }: { job: any; onClose: (
               <div className="flex items-center gap-2 text-slate-400 mb-1 text-xs font-bold uppercase">
                 <FaMoneyBillWave /> Salary
               </div>
-              <p className="font-bold text-slate-800">{job.salary}</p>
+              <p className="font-bold text-slate-800">{job.experience}</p>
             </div>
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-2 text-slate-400 mb-1 text-xs font-bold uppercase">
                 <FaClock /> Type
               </div>
-              <p className="font-bold text-slate-800">{job.type}</p>
+              <p className="font-bold text-slate-800">full time</p>
             </div>
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 text-slate-400 mb-1 text-xs font-bold uppercase">
@@ -98,7 +101,7 @@ export default function JobDetailsModal({ job, onClose }: { job: any; onClose: (
             <div>
               <h4 className="font-bold text-slate-900 mb-2">Role Overview</h4>
               <p className="text-slate-500 leading-relaxed">
-                We are looking for a high-performing {job.title} to join our core team.
+                We are looking for a high-performing {job.role} to join our core team.
                 You will be responsible for building scalable systems and collaborating with
                 cross-functional teams to deliver excellence.
               </p>
