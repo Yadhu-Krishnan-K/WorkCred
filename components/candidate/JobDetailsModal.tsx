@@ -14,7 +14,7 @@ export default function JobDetailsModal({ job, onClose }: { job: JobDocument; on
         body: JSON.stringify({
           connectId: job._id,
           companyId: job.companyId,
-          type: "Job",
+          connectType: "JOB",
           message: `Applying for ${job.role}`,
         }),
       });

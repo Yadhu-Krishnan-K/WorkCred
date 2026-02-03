@@ -3,8 +3,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import {
-  FaRegUserCircle, FaSearch, FaChevronRight, 
-  FaBolt, FaInbox, FaChartLine, FaBriefcase, FaTimes
+  FaRegUserCircle, FaSearch, FaChevronRight,
+  FaBolt, FaInbox, FaChartLine, FaBriefcase, FaTimes,
+  FaCommentDots
 } from "react-icons/fa";
 
 /* ---------------- TYPES ---------------- */
@@ -43,7 +44,7 @@ export default function CompanyWorkspace() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // New States for Detail Views
   const [activeJobApplicants, setActiveJobApplicants] = useState<any[]>([]);
   const [viewingCandidate, setViewingCandidate] = useState<Candidate | null>(null);
@@ -54,17 +55,17 @@ export default function CompanyWorkspace() {
     async function initFetch() {
       try {
         const [candisRes, jobsRes] = await Promise.all([
-          fetch("/api/candidates"), 
+          fetch("/api/candidates"),
           fetch('/api/jobs')
         ]);
         const candisJson = await candisRes.json();
         const jobsJson = await jobsRes.json();
         setCandidates(candisJson.data || []);
         setJobs(jobsJson || []);
-      } catch (e) { 
-        console.error("Init fetch error:", e); 
-      } finally { 
-        setLoading(false); 
+      } catch (e) {
+        console.error("Init fetch error:", e);
+      } finally {
+        setLoading(false);
       }
     }
     initFetch();
@@ -78,6 +79,7 @@ export default function CompanyWorkspace() {
         try {
           const res = await fetch(`/api/jobApplicants/${selectedId}`);
           const json = await res.json();
+          console.log('json = ', json)
           // Adjust based on your API structure (e.g., json.data or just json)
           setActiveJobApplicants(json.data || json || []);
         } catch (e) {
@@ -95,9 +97,36 @@ export default function CompanyWorkspace() {
   const selectedCandidate = candidates.find(c => c._id === selectedId);
   const selectedJob = jobs.find(j => j._id === selectedId);
 
+
+
+
+  async function approveCandidate(id:any){
+    try {
+      const res = await fetch(`/api/credConnect/company/job/accepted/${id}`,{method:'PATCH'})
+    
+      if(!res.ok) throw new Error("Update failed!")
+    
+      setActiveJobApplicants(prev=>{
+        let ind = prev.findIndex(obj=>obj._id === id);
+        let newAr = [...prev];
+        newAr[ind].status = "Accepted"
+        console.log('##########################################33newArr=>',newAr)
+        return newAr
+      })
+      alert("Successfully updated...")
+    } catch (error) {
+      alert("Error updating status")  
+    }
+  }
+
+
+
+
+
+
   return (
     <div className="h-screen bg-white flex overflow-hidden font-sans selection:bg-emerald-100 relative">
-      
+
       {/* --- LEFT SECTION: THE INBOX --- */}
       <section className={`
         flex-col bg-slate-50 border-r border-slate-200 transition-all duration-500 ease-in-out z-20
@@ -224,7 +253,7 @@ export default function CompanyWorkspace() {
             </motion.div>
           ) : (
             <motion.div key="detail" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-full flex flex-col">
-              
+
               {/* Header */}
               <div className="p-12 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-8 mt-8 lg:mt-0">
                 <div className="flex items-center gap-8">
@@ -283,24 +312,57 @@ export default function CompanyWorkspace() {
                           activeJobApplicants.map((req: any) => (
                             <motion.div
                               key={req._id}
-                              whileHover={{ x: 5 }}
-                              onClick={() => setViewingCandidate(req.sender.id)}
-                              className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between cursor-pointer group hover:border-emerald-500 transition-all"
+                              whileHover={{ y: -4, scale: 1.01 }}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              onClick={() => setViewingCandidate(req)}
+                              className="relative bg-white p-5 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between cursor-pointer group hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300"
                             >
                               <div className="flex items-center gap-5">
-                                <div className="w-14 h-14 rounded-2xl bg-slate-50 overflow-hidden border-2 border-white">
-                                  {req.sender.id?.profileImageUrl ? (
-                                    <img src={req.sender.id.profileImageUrl} alt="" className="w-full h-full object-cover" />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-slate-300"><FaRegUserCircle size={24} /></div>
-                                  )}
+                                {/* Profile Image with Status Ring */}
+                                <div className="relative">
+                                  <div className="w-16 h-16 rounded-[1.75rem] bg-slate-50 overflow-hidden border-2 border-white shadow-inner">
+                                    {req.sender.id?.profileImageUrl ? (
+                                      <img src={req.sender.id.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-slate-300"><FaRegUserCircle size={28} /></div>
+                                    )}
+                                  </div>
+                                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-4 border-white rounded-full"></div>
                                 </div>
+
                                 <div>
-                                  <h4 className="font-black text-slate-800 text-lg">{req.sender.id?.fullName || "Candidate"}</h4>
-                                  <p className="text-xs text-slate-400 font-bold uppercase">{req.status}</p>
+                                  <h4 className="font-black text-slate-800 text-lg tracking-tight group-hover:text-emerald-700 transition-colors">
+                                    {req.sender.id?.fullName || "Candidate"}
+                                  </h4>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                      {req.status}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                              <FaChevronRight className="text-slate-200 group-hover:text-emerald-500" />
+
+                              {/* The Action Cluster */}
+                              <div className="flex items-center gap-3">
+                                {/* Mesmerizing Chat Button */}
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevents opening the profile modal
+                                    // Your chat logic here
+                                  }}
+                                  className="group/chat relative p-4 rounded-2xl bg-slate-50 text-slate-400 overflow-hidden transition-all duration-300 hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-200 active:scale-90"
+                                >
+                                  {(req.status==="ACCEPTED")&&<button className="relative z-10">
+                                    <FaCommentDots size={20} className="transition-transform group-hover/chat:rotate-[15deg]" />
+                                  </button>}
+                                  {/* Animated Background Pulse */}
+                                  <span className="absolute inset-0 bg-gradient-to-tr from-emerald-600 to-teal-400 opacity-0 group-hover/chat:opacity-100 transition-opacity duration-300" />
+                                </div>
+
+                                {/* Subtle Arrow */}
+                                <FaChevronRight className="text-slate-200 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+                              </div>
                             </motion.div>
                           ))
                         ) : (
@@ -310,11 +372,11 @@ export default function CompanyWorkspace() {
                     </div>
                   </div>
                 ) : (
-                   /* Existing Candidate detail view goes here */
-                   <div className="p-10 bg-white rounded-3xl shadow-sm border border-slate-100">
-                      <h3 className="text-xl font-black text-slate-900 mb-4">Candidate Profile</h3>
-                      <p className="text-slate-600 font-medium">{selectedCandidate?.description || "No description provided."}</p>
-                   </div>
+                  /* Existing Candidate detail view goes here */
+                  <div className="p-10 bg-white rounded-3xl shadow-sm border border-slate-100">
+                    <h3 className="text-xl font-black text-slate-900 mb-4">Candidate Profile</h3>
+                    <p className="text-slate-600 font-medium">{selectedCandidate?.description || "No description provided."}</p>
+                  </div>
                 )}
               </div>
             </motion.div>
@@ -322,16 +384,23 @@ export default function CompanyWorkspace() {
         </AnimatePresence>
       </main>
 
+
+
+
+
+
+
+
       {/* --- CANDIDATE DETAIL POPUP (MODAL) --- */}
       <AnimatePresence>
         {viewingCandidate && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setViewingCandidate(null)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" 
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
               className="relative bg-white w-full max-w-xl rounded-[3.5rem] shadow-2xl p-10 overflow-hidden"
             >
@@ -348,7 +417,7 @@ export default function CompanyWorkspace() {
                 </div>
                 <h2 className="text-3xl font-black text-slate-900 tracking-tighter">{viewingCandidate.fullName}</h2>
                 <p className="text-emerald-600 font-bold mb-8">{viewingCandidate.email}</p>
-                
+
                 <div className="w-full space-y-6 text-left">
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Experience</h4>
@@ -363,12 +432,38 @@ export default function CompanyWorkspace() {
                     </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setViewingCandidate(null)}
-                  className="mt-10 w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-slate-800 transition-colors"
-                >
-                  Close Profile
-                </button>
+                {/* Action Footer */}
+                <div className="mt-10 grid grid-cols-2 gap-4 w-full relative">
+                  {/* Reject Button: Subtle Glassmorphism */}
+                  <button
+                    onClick={() => { /* Your Reject Logic */ setViewingCandidate(null); }}
+                    className="group relative py-4 bg-slate-50 border border-slate-200 text-slate-500 rounded-2xl font-black text-xs uppercase tracking-widest overflow-hidden transition-all hover:bg-rose-50 hover:border-rose-100 hover:text-rose-600 active:scale-95"
+                  >
+                    <span className="relative z-10">Decline</span>
+                    <div className="absolute inset-0 bg-rose-100/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                  </button>
+
+                  {/* Accept Button: The "Mesmerizing" Glow */}
+                  <button
+                    onClick={() => { /* Your Accept Logic */ setViewingCandidate(null); }}
+                    className="group relative py-4 bg-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest text-white overflow-hidden shadow-[0_10px_20px_-5px_rgba(16,185,129,0.3)] transition-all hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.4)] active:scale-95"
+                  >
+                    {/* Animated Gradient Background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    <span className="relative z-10 flex items-center justify-center gap-2"
+                    onClick={()=>approveCandidate(viewingCandidate._id)}
+                    >
+                      Approve Candidate
+                      <motion.span
+                        animate={{ x: [0, 4, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.5 }}
+                      >
+                        →
+                      </motion.span>
+                    </span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
