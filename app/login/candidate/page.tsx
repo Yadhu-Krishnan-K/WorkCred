@@ -1,38 +1,49 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function CandidateLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const { data: session } = useSession()
 
-  const [data, setData] = useState({
+  const [userData, setUserData] = useState({
     email: "",
     password: "",
   });
 
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if(!session) return
+    
+    if (session?.user?.stream) {
+      router.replace("/home/enrolled");
+    }else{
+
+      router.replace("/home/candidate")
+    }
+  }, [session, router]);
+
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     const res = await signIn("candidate-credentials", {
-      email: data.email,
-      password: data.password,
-      redirect: false, // IMPORTANT for custom routing
+      email: userData.email,
+      password: userData.password,
+      redirect: false,
     });
 
     setLoading(false);
 
-    if (res?.ok) {
-      router.push("/home/candidate");
-    } else {
-      alert("Invalid email or password");
-    }
+    if (!res?.ok) alert("Invalid email or password");
+    
   };
 
   return (
@@ -57,9 +68,9 @@ export default function CandidateLoginPage() {
           <input
             type="email"
             placeholder="Email"
-            value={data.email}
+            value={userData.email}
             onChange={(e) =>
-              setData({ ...data, email: e.target.value })
+              setUserData({ ...userData, email: e.target.value })
             }
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
@@ -68,9 +79,9 @@ export default function CandidateLoginPage() {
           <input
             type="password"
             placeholder="Password"
-            value={data.password}
+            value={userData.password}
             onChange={(e) =>
-              setData({ ...data, password: e.target.value })
+              setUserData({ ...userData, password: e.target.value })
             }
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
