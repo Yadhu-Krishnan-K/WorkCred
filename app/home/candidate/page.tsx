@@ -34,7 +34,7 @@ export default function CandidateHome() {
     <>
       <Navbar />
       <div className="relative min-h-screen overflow-hidden bg-slate-50">
-        
+
         {/* Background glow */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-200/40 blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-200/30 blur-[120px]" />
@@ -91,7 +91,7 @@ export default function CandidateHome() {
           </div>
         </main>
       </div>
-      <Footer/>
+      <Footer />
     </>
   );
 }

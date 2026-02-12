@@ -10,6 +10,7 @@ import {
   FaBolt, FaInbox, FaChartLine, FaBriefcase, FaTimes,
   FaCommentDots
 } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 /* ---------------- TYPES ---------------- */
 export interface Candidate {
@@ -47,6 +48,7 @@ export default function CompanyWorkspace() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter()
 
   // New States for Detail Views
   const [activeJobApplicants, setActiveJobApplicants] = useState<any[]>([]);
@@ -319,6 +321,8 @@ export default function CompanyWorkspace() {
                         </div>
                       </div>
 
+
+
                       <div className="space-y-6">
                         <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest px-4">Applicants</h3>
                         <div className="grid gap-3">
@@ -364,14 +368,32 @@ export default function CompanyWorkspace() {
                                   {/* Mesmerizing Chat Button */}
                                   <div
                                     onClick={(e) => {
-                                      e.stopPropagation(); // Prevents opening the profile modal
-                                      // Your chat logic here
+                                      e.stopPropagation(); // Prevent opening modal
                                     }}
                                     className="group/chat relative p-4 rounded-2xl bg-slate-50 text-slate-400 overflow-hidden transition-all duration-300 hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-200 active:scale-90"
                                   >
-                                    {(req.status === "ACCEPTED") && <button className="relative z-10">
-                                      <FaCommentDots size={20} className="transition-transform group-hover/chat:rotate-[15deg]" />
-                                    </button>}
+                                    {(req.status === "ACCEPTED") && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+
+                                          const companyId = req.receiver.id;      // ✅ from API
+                                          console.log(companyId, 1919191919191919191919191919191919)
+                                          const candidateId = req.sender.id?._id; // ✅ from API
+
+                                          router.push(
+                                            `/chat?sender=${companyId}&receiver=${candidateId}`
+                                          );
+                                        }}
+                                        className="relative z-10"
+                                      >
+                                        <FaCommentDots
+                                          size={20}
+                                          className="transition-transform group-hover/chat:rotate-[15deg]"
+                                        />
+                                      </button>
+                                    )}
+
                                     {/* Animated Background Pulse */}
                                     <span className="absolute inset-0 bg-gradient-to-tr from-emerald-600 to-teal-400 opacity-0 group-hover/chat:opacity-100 transition-opacity duration-300" />
                                   </div>
@@ -399,11 +421,6 @@ export default function CompanyWorkspace() {
             )}
           </AnimatePresence>
         </main>
-
-
-
-
-
 
 
 
@@ -486,7 +503,7 @@ export default function CompanyWorkspace() {
           )}
         </AnimatePresence>
 
-      </div>
+      </div >
       <Footer />
     </>
   );
