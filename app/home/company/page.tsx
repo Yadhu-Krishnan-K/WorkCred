@@ -1,12 +1,14 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+
 import { useEffect, useState } from "react";
 import {
   FaRegUserCircle, FaSearch, FaChevronRight,
   FaBolt, FaInbox, FaChartLine, FaBriefcase, FaTimes,
   FaCommentDots
 } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 /* ---------------- TYPES ---------------- */
 export interface Candidate {
@@ -44,6 +46,7 @@ export default function CompanyWorkspace() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const router=useRouter()
 
   // New States for Detail Views
   const [activeJobApplicants, setActiveJobApplicants] = useState<any[]>([]);
@@ -344,25 +347,43 @@ export default function CompanyWorkspace() {
                               </div>
 
                               {/* The Action Cluster */}
-                              <div className="flex items-center gap-3">
-                                {/* Mesmerizing Chat Button */}
-                                <div
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // Prevents opening the profile modal
-                                    // Your chat logic here
-                                  }}
-                                  className="group/chat relative p-4 rounded-2xl bg-slate-50 text-slate-400 overflow-hidden transition-all duration-300 hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-200 active:scale-90"
-                                >
-                                  {(req.status==="ACCEPTED")&&<button className="relative z-10">
-                                    <FaCommentDots size={20} className="transition-transform group-hover/chat:rotate-[15deg]" />
-                                  </button>}
-                                  {/* Animated Background Pulse */}
-                                  <span className="absolute inset-0 bg-gradient-to-tr from-emerald-600 to-teal-400 opacity-0 group-hover/chat:opacity-100 transition-opacity duration-300" />
-                                </div>
+                            <div className="flex items-center gap-3">
+  {/* Mesmerizing Chat Button */}
+  <div
+    onClick={(e) => {
+      e.stopPropagation(); // Prevent opening modal
+    }}
+    className="group/chat relative p-4 rounded-2xl bg-slate-50 text-slate-400 overflow-hidden transition-all duration-300 hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-200 active:scale-90"
+  >
+    {(req.status === "ACCEPTED") && (
+   <button
+  onClick={(e) => {
+    e.stopPropagation();
 
-                                {/* Subtle Arrow */}
-                                <FaChevronRight className="text-slate-200 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
-                              </div>
+    const companyId = req.receiver.id;      // ✅ from API
+    console.log(companyId,1919191919191919191919191919191919)
+    const candidateId = req.sender.id?._id; // ✅ from API
+
+    router.push(
+      `/chat?sender=${companyId}&receiver=${candidateId}`
+    );
+  }}
+  className="relative z-10"
+>
+  <FaCommentDots
+    size={20}
+    className="transition-transform group-hover/chat:rotate-[15deg]"
+  />
+</button>
+    )}
+
+    {/* Animated Background Pulse */}
+    <span className="absolute inset-0 bg-gradient-to-tr from-emerald-600 to-teal-400 opacity-0 group-hover/chat:opacity-100 transition-opacity duration-300" />
+  </div>
+
+  {/* Subtle Arrow */}
+  <FaChevronRight className="text-slate-200 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+</div>
                             </motion.div>
                           ))
                         ) : (
