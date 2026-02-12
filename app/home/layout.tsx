@@ -1,5 +1,7 @@
+"use client"
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+
 
 export default function HomeLayout({
   children,
@@ -8,9 +10,13 @@ export default function HomeLayout({
 }) {
   return (
     <>
-      <Navbar />
+   
+       <Navbar />
       {children}
       <Footer/>
+
+    
+     
     </>
   );
 }

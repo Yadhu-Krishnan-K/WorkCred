@@ -1,0 +1,131 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { socket } from "@/lib/socket";
+
+interface Message {
+  senderId: string;
+  receiverId: string;
+  message: string;
+  roomId: string;
+}
+
+export default function ChatPage() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [text, setText] = useState("");
+
+  const searchParams = useSearchParams();
+
+  const senderId = searchParams.get("sender");
+  const receiverId = searchParams.get("receiver");
+  console.log(senderId,receiverId,"/////////////////////////////")
+
+  // 🚨 Prevent crash if params missing
+  if (!senderId || !receiverId) return null;
+
+  // ✅ Generate dynamic room ID
+  const roomId =
+    senderId < receiverId
+      ? `${senderId}_${receiverId}`
+      : `${receiverId}_${senderId}`;
+
+  // ✅ Load old messages
+  useEffect(() => {
+    const loadMessages = async () => {
+      const res = await fetch(
+        `http://localhost:4000/api/chat/${senderId}/${receiverId}`
+      );
+      const data = await res.json();
+      setMessages(data);
+    };
+
+    loadMessages();
+  }, [senderId, receiverId]);
+
+  // ✅ Socket handling
+  useEffect(() => {
+    socket.emit("joinRoom", roomId);
+
+    socket.on("receiveMessage", (data: Message) => {
+      setMessages((prev) => [...prev, data]);
+    });
+
+    return () => {
+      socket.off("receiveMessage");
+    };
+  }, [roomId]);
+
+  const sendMessage = () => {
+    if (!text.trim()) return; // prevent empty messages
+
+    const data: Message = {
+      senderId,
+      receiverId,
+      message: text,
+      roomId,
+    };
+
+    socket.emit("sendMessage", data);
+    setText("");
+  };
+
+return (
+  <div className="h-screen flex flex-col bg-gradient-to-br from-slate-100 to-slate-200">
+
+    {/* HEADER */}
+    <div className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
+      <h2 className="font-bold text-lg text-slate-800">Chat</h2>
+      <span className="text-xs text-emerald-500 font-semibold">
+        Online
+      </span>
+    </div>
+
+    {/* MESSAGES AREA */}
+    <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+      {messages.map((msg, index) => {
+        const isMe = msg.senderId === senderId;
+
+        return (
+          <div
+            key={index}
+            className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`
+                max-w-xs md:max-w-md px-4 py-3 rounded-2xl shadow-md text-sm
+                ${isMe
+                  ? "bg-emerald-500 text-white rounded-br-sm"
+                  : "bg-white text-slate-800 rounded-bl-sm"}
+              `}
+            >
+              {msg.message || (
+                <span className="italic opacity-60">
+                  (empty message)
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+    {/* INPUT AREA */}
+    <div className="bg-white p-4 border-t flex items-center gap-3">
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Type a message..."
+        className="flex-1 px-4 py-3 rounded-full bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+      />
+
+      <button
+        onClick={sendMessage}
+        className="px-6 py-3 bg-emerald-500 text-white rounded-full font-semibold hover:bg-emerald-600 active:scale-95 transition-all shadow-md"
+      >
+        Send
+      </button>
+    </div>
+  </div>
+);
+}
