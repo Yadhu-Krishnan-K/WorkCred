@@ -4,15 +4,19 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaRegUserCircle, FaBell } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import Image from "next/image";
 
 export default function Navbar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<any>()
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
+
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(e.target as Node)
@@ -21,12 +25,22 @@ export default function Navbar() {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
+
+    getCandidate()
+
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  async function getCandidate() {
+    const res = await fetch('/api/getCandidate')
+    const json = await res.json()
+    setUser(json.data)
+  }
+
   function logout() {
     // later: clear token / cookie
-    router.push("/login/candidate");
+    signOut({ callbackUrl: "/" });
   }
 
   return (
@@ -56,7 +70,17 @@ export default function Navbar() {
               onClick={() => setOpen(!open)}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-amber-50 border border-amber-200 cursor-pointer"
             >
-              <FaRegUserCircle className="w-6 h-6 text-emerald-400" />
+              {user?.profileImageUrl ? (
+                <Image
+                  src={user.profileImageUrl}
+                  alt="profile"
+                  fill
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <FaRegUserCircle className="w-6 h-6 text-emerald-400" />
+              )}
+
             </div>
 
             {/* Dropdown */}

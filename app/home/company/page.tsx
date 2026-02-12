@@ -3,6 +3,7 @@
 import Footer from "@/components/Footer";
 import Navbar from "@/components/navbar/company";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   FaRegUserCircle, FaSearch, FaChevronRight,
@@ -102,22 +103,22 @@ export default function CompanyWorkspace() {
 
 
 
-  async function approveCandidate(id:any){
+  async function approveCandidate(id: any) {
     try {
-      const res = await fetch(`/api/credConnect/company/job/accepted/${id}`,{method:'PATCH'})
-    
-      if(!res.ok) throw new Error("Update failed!")
-    
-      setActiveJobApplicants(prev=>{
-        let ind = prev.findIndex(obj=>obj._id === id);
+      const res = await fetch(`/api/credConnect/company/job/accepted/${id}`, { method: 'PATCH' })
+
+      if (!res.ok) throw new Error("Update failed!")
+
+      setActiveJobApplicants(prev => {
+        let ind = prev.findIndex(obj => obj._id === id);
         let newAr = [...prev];
         newAr[ind].status = "Accepted"
-        console.log('##########################################33newArr=>',newAr)
+        console.log('##########################################33newArr=>', newAr)
         return newAr
       })
       alert("Successfully updated...")
     } catch (error) {
-      alert("Error updating status")  
+      alert("Error updating status")
     }
   }
 
@@ -261,8 +262,19 @@ export default function CompanyWorkspace() {
                 {/* Header */}
                 <div className="p-12 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-8 mt-8 lg:mt-0">
                   <div className="flex items-center gap-8">
-                    <div className="w-28 h-28 bg-slate-900 rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl border-4 border-white">
-                      {activeTab === 'job-posts' ? <FaBriefcase size={40} /> : <FaRegUserCircle size={50} />}
+                    <div className="w-28 h-28 bg-slate-900 rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl border-4 border-white overflow-hidden relative">
+                      {activeTab === "job-posts" ? (
+                        <FaBriefcase size={40} />
+                      ) : selectedCandidate?.profileImageUrl ? (
+                        <Image
+                          src={selectedCandidate.profileImageUrl}
+                          alt="candidate"
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <FaRegUserCircle size={50} />
+                      )}
                     </div>
                     <div>
                       <h2 className="text-5xl font-black text-slate-900 tracking-tighter">
@@ -357,7 +369,7 @@ export default function CompanyWorkspace() {
                                     }}
                                     className="group/chat relative p-4 rounded-2xl bg-slate-50 text-slate-400 overflow-hidden transition-all duration-300 hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-200 active:scale-90"
                                   >
-                                    {(req.status==="ACCEPTED")&&<button className="relative z-10">
+                                    {(req.status === "ACCEPTED") && <button className="relative z-10">
                                       <FaCommentDots size={20} className="transition-transform group-hover/chat:rotate-[15deg]" />
                                     </button>}
                                     {/* Animated Background Pulse */}
@@ -456,7 +468,7 @@ export default function CompanyWorkspace() {
                       <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                       <span className="relative z-10 flex items-center justify-center gap-2"
-                      onClick={()=>approveCandidate(viewingCandidate._id)}
+                        onClick={() => approveCandidate(viewingCandidate._id)}
                       >
                         Approve Candidate
                         <motion.span
