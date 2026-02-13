@@ -6,7 +6,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 
 export async function POST(req: Request) {
+  console.log('===================================================++++>>>>>>>>>>>>>>>>>>>>>>> reached route')
   try {
+  console.log('===================================================++++>>>>>>>>>>>>>>>>>>>>>>> reached route')
+
     const { category } = await req.json();
 
     const candSession = await getServerSession(authOptions);
@@ -32,7 +35,7 @@ export async function POST(req: Request) {
                 product_data: {
                   name: `Enroll in ${category}`,
                 },
-                unit_amount: 100, // ₹10 (Stripe uses paise)
+                unit_amount: 5000, // ₹10 (Stripe uses paise)
               },
               quantity: 1,
             },
