@@ -1,4 +1,100 @@
+// import mongoose, { Schema, Document, Types } from "mongoose";
+
+// export type RequestStatus =
+//   | "PENDING"
+//   | "ACCEPTED"
+//   | "REJECTED"
+//   | "CANCELLED";
+
+// export type RequestType =
+//   | "JOB"
+//   | "FREELANCE"
+//   | "INTERNSHIP";
+
+// export type UserRole = "Candidate" | "Company";
+
+// export interface RequestDocument extends Document {  
+//   sender: {
+//     role: UserRole;
+//     id: Types.ObjectId;
+//   };
+
+//   receiver: {
+//     role: UserRole;
+//     id: Types.ObjectId;
+//   };
+
+//   connectModel: RequestType;
+//   connect_Id: Types.ObjectId;//job/freelance/connect id
+//   message?: string;
+//   status: RequestStatus;
+
+//   createdAt: Date;
+//   updatedAt: Date;
+// }
+
+// const RequestSchema = new Schema<RequestDocument>(
+//   {
+//     sender: {
+//       role: {
+//         type: String,
+//         enum: ["Candidate", "Company"],
+//         required: true,
+//       },
+//       id: {
+//         type: Schema.Types.ObjectId,
+//         required: true,
+//         refPath: "sender.role",
+//       },
+//     },
+
+//     receiver: {
+//       role: {
+//         type: String,
+//         enum: ["Candidate", "Company"],
+//         required: true,
+//       },
+//       id: {
+//         type: Schema.Types.ObjectId,
+//         required: true,
+//         refPath: "receiver.role",
+//       },
+//     },
+
+//     connectModel: {
+//       type: String,
+//       enum: ["JOB", "FREELANCE", "INTERNSHIP"],
+//       required: true,
+//     },
+
+//     connect_Id: {
+//       type: Schema.Types.ObjectId,
+//       required: true,
+//       refPath:"connectModel"
+//     },
+
+//     message: {
+//       type: String,
+//       maxlength: 1000,
+//     },
+
+//     status: {
+//       type: String,
+//       enum: ["PENDING", "ACCEPTED", "REJECTED", "CANCELLED"],
+//       default: "PENDING",
+//     },
+//   },
+//   { timestamps: true }
+// );
+
+
+// export default mongoose.models.Request ||
+//   mongoose.model<RequestDocument>("Request", RequestSchema);
 import mongoose, { Schema, Document, Types } from "mongoose";
+
+/* =====================
+   TYPES
+===================== */
 
 export type RequestStatus =
   | "PENDING"
@@ -13,7 +109,12 @@ export type RequestType =
 
 export type UserRole = "Candidate" | "Company";
 
-export interface RequestDocument extends Document {  
+/* =====================
+   INTERFACE
+===================== */
+
+export interface RequestDocument extends Document {
+
   sender: {
     role: UserRole;
     id: Types.ObjectId;
@@ -24,23 +125,32 @@ export interface RequestDocument extends Document {
     id: Types.ObjectId;
   };
 
-  connectModel: RequestType;
-  connect_Id: Types.ObjectId;//job/freelance/connect id
+  connectModel: RequestType;   // JOB / FREELANCE / INTERNSHIP
+
+  connect_Id: Types.ObjectId;  // Job / Freelance / Internship ID
+
   message?: string;
+
   status: RequestStatus;
 
   createdAt: Date;
   updatedAt: Date;
 }
 
+/* =====================
+   SCHEMA
+===================== */
+
 const RequestSchema = new Schema<RequestDocument>(
   {
+    /* Sender (Candidate / Company) */
     sender: {
       role: {
         type: String,
         enum: ["Candidate", "Company"],
         required: true,
       },
+
       id: {
         type: Schema.Types.ObjectId,
         required: true,
@@ -48,12 +158,14 @@ const RequestSchema = new Schema<RequestDocument>(
       },
     },
 
+    /* Receiver (Company / Candidate) */
     receiver: {
       role: {
         type: String,
         enum: ["Candidate", "Company"],
         required: true,
       },
+
       id: {
         type: Schema.Types.ObjectId,
         required: true,
@@ -61,32 +173,58 @@ const RequestSchema = new Schema<RequestDocument>(
       },
     },
 
+    /* Request Type */
     connectModel: {
       type: String,
       enum: ["JOB", "FREELANCE", "INTERNSHIP"],
       required: true,
     },
 
+    /* Connected Entity ID */
     connect_Id: {
       type: Schema.Types.ObjectId,
       required: true,
-      refPath:"connectModel"
+      refPath: "connectModel",
     },
 
+    /* Optional Message */
     message: {
       type: String,
       maxlength: 1000,
     },
 
+    /* Request Status */
     status: {
       type: String,
       enum: ["PENDING", "ACCEPTED", "REJECTED", "CANCELLED"],
       default: "PENDING",
     },
   },
-  { timestamps: true }
+
+  {
+    timestamps: true,
+  }
 );
 
+/* =====================
+   🔥 UNIQUE INDEX (MOST IMPORTANT)
+   Prevent duplicate apply
+===================== */
+
+RequestSchema.index(
+  {
+    "sender.id": 1,     // Candidate ID
+    connect_Id: 1,      // Job / Post ID
+    connectModel: 1,    // JOB / FREELANCE / INTERNSHIP
+  },
+  {
+    unique: true,
+  }
+);
+
+/* =====================
+   MODEL EXPORT
+===================== */
 
 export default mongoose.models.Request ||
   mongoose.model<RequestDocument>("Request", RequestSchema);
