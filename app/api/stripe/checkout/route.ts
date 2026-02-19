@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
         // ⚠️ TEMP: updating DB before payment (testing only)
         // TODO: move this to webhook for production
-        await candidatemodel.findByIdAndUpdate(candSession.user.id,{$set:{stream:category}})
+        await candidatemodel.findByIdAndUpdate(candSession.user.id,{$set:{stream:category,paymentStatus:"SUCCESS"}})
         
         const session = await stripe.checkout.sessions.create({
           mode: "payment",

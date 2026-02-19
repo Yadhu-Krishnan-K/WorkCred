@@ -19,6 +19,11 @@ export default function CandidateLoginPage() {
 
   useEffect(() => {
     if(!session) return
+
+    if (session.user.role !== "CANDIDATE") {
+      // router.replace("/auth/login"); // or show unauthorized
+      return;
+    }
     
     if (session?.user?.stream) {
       router.replace("/home/enrolled");

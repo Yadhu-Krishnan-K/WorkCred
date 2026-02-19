@@ -6,6 +6,8 @@ export interface CandidateDocument extends Document{
   password: string;
   isVerified: boolean;
 
+  paymentStatus:string;
+  successViewed:boolean;
   stream: string;
   description?: string;
   experience?: string;          // keep string since UI uses "5+ Years"
@@ -41,6 +43,16 @@ const CandidateSchema = new Schema<CandidateDocument>(
     },
 
     isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    paymentStatus: {
+      type:String,
+      default:"PENDING" 
+    },
+
+    successViewed: {
       type: Boolean,
       default: false,
     },
