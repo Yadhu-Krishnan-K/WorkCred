@@ -48,9 +48,10 @@ export default function ChatPage() {
       receiverId: receiverId,
       status: "ringing", // Make sure this matches what the hook expects
       createdAt: Date.now(),
+      endedAt:null,
       offer: null,  // Clear old offers
       answer: null  // Clear old answers
-    },{merge:true});
+    });
     setCallTarget(name);
     setCallRole("caller");   // 👈 YOU initiated
     setIsCalling(true);

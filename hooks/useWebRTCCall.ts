@@ -8,7 +8,8 @@ import {
     onSnapshot,
     collection,
     addDoc,
-    getDoc
+    getDocs,
+    deleteDoc
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Console } from "console";
@@ -58,9 +59,44 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
 
 
     const createPeerConnection = () => {
+        // const pc = new RTCPeerConnection({
+        //     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        // });
         const pc = new RTCPeerConnection({
-            iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+            iceServers: [
+                {
+                    urls: "stun:stun.l.google.com:19302",
+                },
+                {
+                    urls: "turn:openrelay.metered.ca:80?transport=tcp",
+                    username: "openrelayproject",
+                    credential: "openrelayproject",
+                },
+                {
+                    urls: "turn:openrelay.metered.ca:443?transport=tcp",
+                    username: "openrelayproject",
+                    credential: "openrelayproject",
+                },
+            ],
         });
+
+        pc.oniceconnectionstatechange = () => {
+            console.log("ICE state:", pc.iceConnectionState);
+        };
+
+        pc.onconnectionstatechange = () => {
+            console.log("PeerConnection state:", pc.connectionState);
+        };
+
+        pc.onicegatheringstatechange = () => {
+            console.log("ICE gathering state:", pc.iceGatheringState);
+        };
+
+        pc.onicecandidate = (event) => {
+            if (event.candidate) {
+                console.log("New ICE candidate:", event.candidate.candidate);
+            }
+        };
 
         pc.ontrack = (event) => {
             const stream = event.streams[0];
@@ -96,7 +132,7 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
 
     const getLocalMedia = async () => {
         const stream = await navigator.mediaDevices.getUserMedia({
-            video: false,
+            video: true,
             audio: true,
         });
 
@@ -225,10 +261,21 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
     };
 
 
+    const clearCandidates = async (callDocRef: any) => {
+        const offerCandidates = collection(callDocRef, "offerCandidates");
+        const answerCandidates = collection(callDocRef, "answerCandidates");
 
+        const offerSnap = await getDocs(offerCandidates);
+        offerSnap.forEach(doc => deleteDoc(doc.ref));
+
+        const answerSnap = await getDocs(answerCandidates);
+        answerSnap.forEach(doc => deleteDoc(doc.ref));
+    };
 
 
     const startCall = async () => {
+        const callDoc = doc(db,"calls",callId)
+        await clearCandidates(callDoc);
         endingRef.current = false;
         setCallState("idle");
         setRemoteStream(null);
