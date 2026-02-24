@@ -1,3 +1,130 @@
+// "use client";
+
+// import Footer from "@/components/Footer";
+// import Navbar from "@/components/navbar/company";
+// import { motion, AnimatePresence } from "framer-motion";
+// import Image from "next/image";
+// import { useEffect, useState } from "react";
+// import {
+//   FaRegUserCircle, FaSearch, FaChevronRight,
+//   FaBolt, FaInbox, FaChartLine, FaBriefcase, FaTimes,
+//   FaCommentDots
+// } from "react-icons/fa";
+// import { useRouter } from "next/navigation";
+
+// /* ---------------- TYPES ---------------- */
+// export interface Candidate {
+//   _id: string;
+//   fullName: string;
+//   email: string;
+//   isVerified: boolean;
+//   description?: string;
+//   experience?: string;
+//   skills: string[];
+//   qualification?: string;
+//   avgRating: number;
+//   profileImageUrl?: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
+
+// export interface Job {
+//   _id: string;
+//   companyId: string;
+//   role: string;
+//   requirements: string;
+//   experience: string;
+//   isActive: boolean;
+//   createdAt: Date;
+//   updatedAt: Date;
+// }
+
+// type ViewMode = "top-candidates" | "connections" | "freelance" | "job-posts";
+
+// export default function CompanyWorkspace() {
+//   const [candidates, setCandidates] = useState<Candidate[]>([]);
+//   const [jobs, setJobs] = useState<Job[]>([]);
+//   const [activeTab, setActiveTab] = useState<ViewMode>("top-candidates");
+//   const [selectedId, setSelectedId] = useState<string | null>(null);
+//   const [loading, setLoading] = useState(true);
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const router = useRouter()
+
+//   // New States for Detail Views
+//   const [activeJobApplicants, setActiveJobApplicants] = useState<any[]>([]);
+//   const [viewingCandidate, setViewingCandidate] = useState<Candidate | null>(null);
+//   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+
+//   // Initial Data Fetch
+//   useEffect(() => {
+//     async function initFetch() {
+//       try {
+//         const [candisRes, jobsRes] = await Promise.all([
+//           fetch("/api/candidates"),
+//           fetch('/api/jobs')
+//         ]);
+//         const candisJson = await candisRes.json();
+//         const jobsJson = await jobsRes.json();
+//         setCandidates(candisJson.data || []);
+//         setJobs(jobsJson || []);
+//       } catch (e) {
+//         console.error("Init fetch error:", e);
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+//     initFetch();
+//   }, []);
+
+//   // Fetch Applicants when a Job is selected
+//   useEffect(() => {
+//     if (selectedId && activeTab === "job-posts") {
+//       const fetchApplicants = async () => {
+//         setIsDetailsLoading(true);
+//         try {
+//           const res = await fetch(`/api/jobApplicants/${selectedId}`);
+//           const json = await res.json();
+//           console.log('json = ', json)
+//           // Adjust based on your API structure (e.g., json.data or just json)
+//           setActiveJobApplicants(json.data || json || []);
+//         } catch (e) {
+//           console.error("Error fetching applicants:", e);
+//         } finally {
+//           setIsDetailsLoading(false);
+//         }
+//       };
+//       fetchApplicants();
+//     } else {
+//       setActiveJobApplicants([]);
+//     }
+//   }, [selectedId, activeTab]);
+
+//   const selectedCandidate = candidates.find(c => c._id === selectedId);
+//   const selectedJob = jobs.find(j => j._id === selectedId);
+
+
+
+
+//   async function approveCandidate(id: any) {
+//     try {
+//       const res = await fetch(`/api/credConnect/company/job/accepted/${id}`, { method: 'PATCH' })
+
+//       if (!res.ok) throw new Error("Update failed!")
+
+//       setActiveJobApplicants(prev => {
+//         let ind = prev.findIndex(obj => obj._id === id);
+//         let newAr = [...prev];
+//         newAr[ind].status = "Accepted"
+//         console.log('##########################################33newArr=>', newAr)
+//         return newAr
+//       })
+//       alert("Successfully updated...")
+//     } catch (error) {
+//       alert("Error updating status")
+//     }
+//   }
+
+
 "use client";
 
 import Footer from "@/components/Footer";
@@ -10,7 +137,7 @@ import {
   FaBolt, FaInbox, FaChartLine, FaBriefcase, FaTimes,
   FaCommentDots
 } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation"; // ✅ UPDATED
 
 /* ---------------- TYPES ---------------- */
 export interface Candidate {
@@ -42,90 +169,150 @@ export interface Job {
 type ViewMode = "top-candidates" | "connections" | "freelance" | "job-posts";
 
 export default function CompanyWorkspace() {
+
+  const router = useRouter();
+  const searchParams = useSearchParams(); // ✅ NEW
+
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [activeTab, setActiveTab] = useState<ViewMode>("top-candidates");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter()
 
-  // New States for Detail Views
+  // Detail Views
   const [activeJobApplicants, setActiveJobApplicants] = useState<any[]>([]);
   const [viewingCandidate, setViewingCandidate] = useState<Candidate | null>(null);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
 
+  // ===============================
+  // ✅ READ URL PARAMS (FROM NOTIFICATION)
+  // ===============================
+  useEffect(() => {
+
+    const job = searchParams.get("job");
+    const tab = searchParams.get("tab");
+
+    if (job && tab === "job-posts") {
+      setActiveTab("job-posts");
+      setSelectedId(job);
+    }
+
+  }, [searchParams]);
+
+  // ===============================
   // Initial Data Fetch
+  // ===============================
   useEffect(() => {
     async function initFetch() {
       try {
         const [candisRes, jobsRes] = await Promise.all([
           fetch("/api/candidates"),
-          fetch('/api/jobs')
+          fetch("/api/jobs")
         ]);
+
         const candisJson = await candisRes.json();
         const jobsJson = await jobsRes.json();
+
         setCandidates(candisJson.data || []);
         setJobs(jobsJson || []);
+
       } catch (e) {
         console.error("Init fetch error:", e);
       } finally {
         setLoading(false);
       }
     }
+
     initFetch();
   }, []);
 
-  // Fetch Applicants when a Job is selected
+  // ===============================
+  // Fetch Applicants
+  // ===============================
   useEffect(() => {
+
     if (selectedId && activeTab === "job-posts") {
+
       const fetchApplicants = async () => {
+
         setIsDetailsLoading(true);
+
         try {
+
           const res = await fetch(`/api/jobApplicants/${selectedId}`);
           const json = await res.json();
-          console.log('json = ', json)
-          // Adjust based on your API structure (e.g., json.data or just json)
+
+          console.log("json = ", json);
+
           setActiveJobApplicants(json.data || json || []);
+
         } catch (e) {
           console.error("Error fetching applicants:", e);
         } finally {
           setIsDetailsLoading(false);
         }
       };
+
       fetchApplicants();
+
     } else {
       setActiveJobApplicants([]);
     }
+
   }, [selectedId, activeTab]);
 
-  const selectedCandidate = candidates.find(c => c._id === selectedId);
-  const selectedJob = jobs.find(j => j._id === selectedId);
+  // ===============================
+  // Selected Items
+  // ===============================
+  const selectedCandidate = candidates.find(
+    (c) => c._id === selectedId
+  );
 
+  const selectedJob = jobs.find(
+    (j) => j._id === selectedId
+  );
 
-
-
+  // ===============================
+  // Approve Candidate
+  // ===============================
   async function approveCandidate(id: any) {
+
     try {
-      const res = await fetch(`/api/credConnect/company/job/accepted/${id}`, { method: 'PATCH' })
 
-      if (!res.ok) throw new Error("Update failed!")
+      const res = await fetch(
+        `/api/credConnect/company/job/accepted/${id}`,
+        { method: "PATCH" }
+      );
 
-      setActiveJobApplicants(prev => {
-        let ind = prev.findIndex(obj => obj._id === id);
+      if (!res.ok) throw new Error("Update failed!");
+
+      setActiveJobApplicants((prev) => {
+
+        let ind = prev.findIndex((obj) => obj._id === id);
+
         let newAr = [...prev];
-        newAr[ind].status = "Accepted"
-        console.log('##########################################33newArr=>', newAr)
-        return newAr
-      })
-      alert("Successfully updated...")
+
+        if (newAr[ind]) {
+          newAr[ind].status = "Accepted";
+        }
+
+        console.log("Updated applicants =>", newAr);
+
+        return newAr;
+      });
+
+      alert("Successfully updated...");
+
     } catch (error) {
-      alert("Error updating status")
+      console.error(error);
+      alert("Error updating status");
     }
   }
 
-
-
+  // ===============================
+  // ⬇️ YOUR RETURN CONTINUES BELOW
+  // ===============================
 
 
 
