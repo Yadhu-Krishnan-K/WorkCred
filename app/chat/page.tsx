@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { socket } from "@/lib/socket";
 import { VideoCallModal } from "@/components/VideoCall/videoCallModal";
+import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface Message {
   senderId: string;
@@ -15,22 +17,19 @@ interface Message {
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
-  
+
   const [isCalling, setIsCalling] = useState(false);
-  
+  const [callRole, setCallRole] = useState<"caller" | "receiver" | null>(null);
+
   const [callTarget, setCallTarget] = useState<string>("");
 
-  // Helper function to trigger call
-  const startCall = (name: string) => {
-    setCallTarget(name);
-    setIsCalling(true);
-  };
+
 
   const searchParams = useSearchParams();
 
   const senderId = searchParams.get("sender");
   const receiverId = searchParams.get("receiver");
-  console.log(senderId,receiverId,"/////////////////////////////")
+  console.log(senderId, receiverId, "/////////////////////////////")
 
   // 🚨 Prevent crash if params missing
   if (!senderId || !receiverId) return null;
@@ -40,6 +39,22 @@ export default function ChatPage() {
     senderId < receiverId
       ? `${senderId}_${receiverId}`
       : `${receiverId}_${senderId}`;
+
+  // Helper function to trigger call
+  const startCall = async (name: string) => {
+    const callDoc = doc(db, "calls", roomId);
+    await setDoc(callDoc, {
+      callerId: senderId,
+      receiverId: receiverId,
+      status: "ringing", // Make sure this matches what the hook expects
+      createdAt: Date.now(),
+      offer: null,  // Clear old offers
+      answer: null  // Clear old answers
+    },{merge:true});
+    setCallTarget(name);
+    setCallRole("caller");   // 👈 YOU initiated
+    setIsCalling(true);
+  };
 
   // ✅ Load old messages
   useEffect(() => {
@@ -67,6 +82,28 @@ export default function ChatPage() {
     };
   }, [roomId]);
 
+  //webrtc handling
+  useEffect(() => {
+    const callDoc = doc(db, "calls", roomId);
+
+    const unsub = onSnapshot(callDoc, snap => {
+      const data = snap.data();
+      if (!data) return;
+
+      // incoming call
+      if (
+        data.status === "ringing" &&
+        data.receiverId === senderId
+      ) {
+        setCallRole("receiver");
+        setIsCalling(true);
+      }
+
+    });
+
+    return () => unsub();
+  }, [roomId, senderId]);
+
   const sendMessage = () => {
     if (!text.trim()) return; // prevent empty messages
 
@@ -81,71 +118,72 @@ export default function ChatPage() {
     setText("");
   };
 
-return (
-  <>
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-100 to-slate-200">
+  return (
+    <>
+      <div className="h-screen flex flex-col bg-gradient-to-br from-slate-100 to-slate-200">
 
-      {/* HEADER */}
-      <div className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-        <h2 className="font-bold text-lg text-slate-800">Chat</h2>
-        <button className="rounded border-none bg-blue-700 text-amber-50 cursor-pointer hover:shadow-fuchsia-600" onClick={()=>startCall('abc')}>Video Call</button>
-        <span className="text-xs text-emerald-500 font-semibold">
-          Online
-        </span>
-      </div>
+        {/* HEADER */}
+        <div className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
+          <h2 className="font-bold text-lg text-slate-800">Chat</h2>
+          <button className="rounded border-none bg-blue-700 text-amber-50 cursor-pointer hover:shadow-fuchsia-600" onClick={() => startCall('abc')}>Video Call</button>
+          <span className="text-xs text-emerald-500 font-semibold">
+            Online
+          </span>
+        </div>
 
-      {/* MESSAGES AREA */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
-        {messages.map((msg, index) => {
-          const isMe = msg.senderId === senderId;
+        {/* MESSAGES AREA */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+          {messages.map((msg, index) => {
+            const isMe = msg.senderId === senderId;
 
-          return (
-            <div
-              key={index}
-              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-            >
+            return (
               <div
-                className={`
+                key={index}
+                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`
                   max-w-xs md:max-w-md px-4 py-3 rounded-2xl shadow-md text-sm
                   ${isMe
-                    ? "bg-emerald-500 text-white rounded-br-sm"
-                    : "bg-white text-slate-800 rounded-bl-sm"}
+                      ? "bg-emerald-500 text-white rounded-br-sm"
+                      : "bg-white text-slate-800 rounded-bl-sm"}
                 `}
-              >
-                {msg.message || (
-                  <span className="italic opacity-60">
-                    (empty message)
-                  </span>
-                )}
+                >
+                  {msg.message || (
+                    <span className="italic opacity-60">
+                      (empty message)
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
 
-      {/* INPUT AREA */}
-      <div className="bg-white p-4 border-t flex items-center gap-3">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 px-4 py-3 rounded-full bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
-        />
+        {/* INPUT AREA */}
+        <div className="bg-white p-4 border-t flex items-center gap-3">
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1 px-4 py-3 rounded-full bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+          />
 
-        <button
-          onClick={sendMessage}
-          className="px-6 py-3 bg-emerald-500 text-white rounded-full font-semibold hover:bg-emerald-600 active:scale-95 transition-all shadow-md"
-        >
-          Send
-        </button>
+          <button
+            onClick={sendMessage}
+            className="px-6 py-3 bg-emerald-500 text-white rounded-full font-semibold hover:bg-emerald-600 active:scale-95 transition-all shadow-md"
+          >
+            Send
+          </button>
+        </div>
       </div>
-    </div>
-    <VideoCallModal
-      isOpen={isCalling} 
-      onClose={() => setIsCalling(false)} 
-      participantName={callTarget} 
-      callId={roomId}
-    />
-  </>
-);
+      <VideoCallModal
+        isOpen={isCalling}
+        onClose={() => setIsCalling(false)}
+        participantName={callRole === "caller" ? receiverId : senderId}
+        callId={roomId}
+        role={callRole!}
+      />
+    </>
+  );
 }

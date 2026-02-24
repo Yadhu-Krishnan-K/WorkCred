@@ -3,335 +3,86 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPhoneSlash, FaMicrophone, FaVideo, FaExpand, FaCog, FaMicrophoneSlash, FaVideoSlash } from "react-icons/fa";
-import { db } from "@/lib/firebase";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc,
-  onSnapshot,
-  collection,
-  addDoc,
-  deleteDoc
-} from "firebase/firestore";
-import { off } from "process";
+
+import { useWebRTCCall } from "@/hooks/useWebRTCCall";
 
 interface VideoCallModalProps {
   isOpen: boolean;
   onClose: () => void;
   participantName: string;
   callId: string;
+  role: "caller" | "receiver";
 }
 
-export const VideoCallModal = ({ isOpen, onClose, participantName, callId }: VideoCallModalProps) => {
+export const VideoCallModal = ({ isOpen, onClose, participantName, callId, role }: VideoCallModalProps) => {
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
 
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-  const localStreamRef = useRef<MediaStream | null>(null);
+  const {
+    localStream,
+    remoteStream,
+    callState,
+    startCall,
+    endCall
+  } = useWebRTCCall({ callId, role });
+
+  useEffect(() => {
+    if (isOpen) {
+      startCall();
+    } else {
+      endCall();
+    }
+  }, [isOpen]);
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
+
+  useEffect(() => {
+    if (!remoteVideoRef.current || !remoteStream) {
+      // alert('no remote video present')
+      // console.log('error: no remote video present');
+      return
+    }
+
+    // console.log('remote video stream ===')
+
+    remoteVideoRef.current.srcObject = remoteStream;
+    remoteVideoRef.current.muted = false;
+    remoteVideoRef.current.volume = 1;
+
+    const playPromise = remoteVideoRef.current.play();
+    if (playPromise) {
+      playPromise.catch(err => {
+        console.warn("Remote autoplay blocked:", err);
+      });
+    }
+  }, [remoteStream]);
+
+  useEffect(() => {
+    localStream?.getAudioTracks().forEach(track => {
+      track.enabled = !isMuted;
+    });
+  }, [isMuted, localStream]);
+
+  //
+  useEffect(() => {
+    console.log('callstate vdocl modl ln 73*********************************',callState)
+    if (callState === "ended") {
+      onClose();
+    }
+  }, [callState]);
 
   console.log("My Call ID:", callId);
 
-  useEffect(() => {
-    let stream: MediaStream | null = null;
-    const unsubscribers: (() => void)[] = [];
-
-    if (isOpen) {
-      // const initialCall = async () => {
-      //   try {
-      //     //step:1 -> get media;
-      //     stream = await navigator.mediaDevices.getUserMedia({
-      //       video: false,
-      //       audio: true,
-      //     });
-
-      //     localStreamRef.current = stream;
-
-      //     if (localVideoRef.current) {
-      //       localVideoRef.current.srcObject = stream;
-      //     }
-
-      //     //step2:-> create peer connection
-      //     const pc = new RTCPeerConnection({
-      //       iceServers: [
-      //         {
-      //           urls: "stun:stun.l.google.com:19302"
-      //         }
-      //       ]
-      //     });
-      //     peerConnectionRef.current = pc;
-
-      //     //step3:-> add local tracks to peer connection
-      //     stream.getTracks().forEach((track) => {
-      //       pc.addTrack(track, stream!);
-      //     })
-
-      //     //step4:-> Listen for remote tracks
-      //     pc.ontrack = (event) => {
-      //       if (remoteVideoRef.current) {
-      //         remoteVideoRef.current.srcObject = event.streams[0];
-      //       }
-      //     }
-      //     console.log('Peer connection initialized')
-      //     await createOffer();
-      //   } catch (err) {
-      //     console.error("Error accessing media devices:", err);
-      //   }
-      // };
-      const initialCall = async () => {
-        try {
-          const callDoc = doc(db, "calls", callId);
-          const offerCandidates = collection(callDoc, "offerCandidates");
-          const answerCandidates = collection(callDoc, "answerCandidates");
-          
-
-          const callSnapshot = await getDoc(callDoc);
-          const callData = callSnapshot.data();
-
-          // 1️⃣ Create peer connection
-          const pc = new RTCPeerConnection({
-            iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-          });
-
-          peerConnectionRef.current = pc;
-
-          // 2️⃣ Get media
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: false,
-            audio: true,
-          });
-
-          localStreamRef.current = stream;
-
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-          }
-
-          stream.getTracks().forEach((track: MediaStreamTrack) => {
-            pc.addTrack(track, stream);
-          });
-
-          // 3️⃣ Remote stream
-          pc.ontrack = (event) => {
-            if (remoteVideoRef.current) {
-              remoteVideoRef.current.srcObject = event.streams[0];
-            }
-          };
-
-          // 🔥 ROLE DECISION
-          if (!callData?.offer) {
-            // =====================
-            // 🟢 CALLER
-            // =====================
-            console.log("I am caller");
-
-            // Send ICE to offerCandidates
-            pc.onicecandidate = async (event) => {
-              if (event.candidate) {
-                await addDoc(offerCandidates, event.candidate.toJSON());
-              }
-            };
-
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-
-            await setDoc(callDoc, {
-              offer: {
-                type: offer.type,
-                sdp: offer.sdp,
-              },
-            });
-
-            // Listen for answer
-            const unsubscribeAnswer = onSnapshot(callDoc, async (snapshot) => {
-              const data = snapshot.data();
-              if (data?.answer && !pc.currentRemoteDescription) {
-                await pc.setRemoteDescription(
-                  new RTCSessionDescription(data.answer)
-                );
-                console.log("Answer received");
-              }
-            });
-
-            // Listen for receiver ICE
-            const unsubscribeAnswerCandidates = onSnapshot(answerCandidates, (snapshot) => {
-              snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                  const candidate = new RTCIceCandidate(change.doc.data());
-                  pc.addIceCandidate(candidate);
-                }
-              });
-            });
-            unsubscribers.push(unsubscribeAnswer);
-            unsubscribers.push(unsubscribeAnswerCandidates);
-          } else {
-            // =====================
-            // 🔵 RECEIVER
-            // =====================
-            console.log("I am receiver");
-
-            // Send ICE to answerCandidates
-            pc.onicecandidate = async (event) => {
-              if (event.candidate) {
-                await addDoc(answerCandidates, event.candidate.toJSON());
-              }
-            };
-
-            await pc.setRemoteDescription(
-              new RTCSessionDescription(callData.offer)
-            );
-
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-
-            await updateDoc(callDoc, {
-              answer: {
-                type: answer.type,
-                sdp: answer.sdp,
-              },
-            });
-
-            // Listen for caller ICE
-            const unsubscribeOfferCandidates = onSnapshot(offerCandidates, (snapshot) => {
-              snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                  const candidate = new RTCIceCandidate(change.doc.data());
-                  pc.addIceCandidate(candidate);
-                }
-              });
-            });
-            unsubscribers.push(unsubscribeOfferCandidates);
-          }
-
-        } catch (err) {
-          console.error(err);
-        }
-      };
-      initialCall();
-    }
-
-    // Cleanup: Stop camera tracks when modal closes
-    return () => {
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => {
-          track.stop();
-        });
-      }
-      if (peerConnectionRef.current) {
-        peerConnectionRef.current.close();
-      }
-      unsubscribers.forEach(unsub => unsub());
-    };
-  }, [isOpen]);
-
-  // useEffect(() => {
-  //   if (!isOpen) return;
-
-  //   const setupReceiver = async () => {
-  //     const callDoc = doc(db, "calls", callId);
-  //     const callData = (await getDoc(callDoc)).data();
-
-  //     if (!callData?.offer) return; // Not receiver
-
-  //     // 1️⃣ Create peer connection
-  //     const pc = new RTCPeerConnection({
-  //       iceServers: [
-  //         { urls: "stun:stun.l.google.com:19302" }
-  //       ],
-  //     });
-
-  //     peerConnectionRef.current = pc;
-
-  //     // 2️⃣ Get media
-  //     const localStream = await navigator.mediaDevices.getUserMedia({
-  //       video: false,
-  //       audio: true,
-  //     });
-
-  //     localStreamRef.current = localStream;
-  //     localVideoRef.current!.srcObject = localStream;
-
-  //     localStream.getTracks().forEach(track => {
-  //       pc.addTrack(track, localStream);
-  //     });
-
-  //     // 3️⃣ Set remote offer
-  //     await pc.setRemoteDescription(
-  //       new RTCSessionDescription(callData.offer)
-  //     );
-
-  //     // 4️⃣ Create answer
-  //     const answer = await pc.createAnswer();
-  //     await pc.setLocalDescription(answer);
-
-  //     // 5️⃣ Save answer to Firestore
-  //     await updateDoc(callDoc, {
-  //       answer: {
-  //         type: answer.type,
-  //         sdp: answer.sdp,
-  //       },
-  //     });
-
-  //   };
-
-  //   setupReceiver();
-  // }, [isOpen]);
-
-  const createOffer = async () => {
-    const pc = peerConnectionRef.current;
-    if (!pc) return;
-
-    const callDoc = doc(db, "calls", callId);
-    const offerCandidates = collection(callDoc, "offerCandidates");
-
-    //step1:-> listen for ice candidates and store them
-    pc.onicecandidate = async (event) => {
-      if (event.candidate) {
-        await addDoc(offerCandidates, event.candidate.toJSON());
-      }
-    };
-
-    //step2:-> create offer
-    const offerDescription = await pc.createOffer();
-    await pc.setLocalDescription(offerDescription);
-
-    //step3:-> save offer to firestore
-    await setDoc(callDoc, {
-      offer: {
-        type: offerDescription.type,
-        sdp: offerDescription.sdp
-      }
-    })
-    console.log("Offer created and stored")
-  }
-
-
   const handleEndCall = async () => {
-    try {
-      // 🔥 Delete call document
-      await deleteDoc(doc(db, "calls", callId));
-      console.log("Call document deleted");
-    } catch (error) {
-      console.error("Error deleting call:", error);
-    }
-
-    // Close peer connection
-    if (peerConnectionRef.current) {
-      peerConnectionRef.current.close();
-    }
-
-    // Stop local tracks
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
-    }
-
-    // Close modal
+    console.log('ending call============================videocall modal line74')
+    await endCall();
     onClose();
   };
-
-
 
   return (
     <AnimatePresence>
@@ -402,14 +153,14 @@ export const VideoCallModal = ({ isOpen, onClose, participantName, callId }: Vid
             {/* Mesmerizing Control Bar */}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 px-10 py-5 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl z-20">
               <button
-                onClick={() => setIsMuted(!isMuted)}
+                onClick={() => localStream?.getAudioTracks().forEach(t => t.enabled = !isMuted)}
                 className={`w-14 h-14 flex items-center justify-center rounded-full transition-all active:scale-90 ${isMuted ? 'bg-rose-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
               >
                 {isMuted ? <FaMicrophoneSlash size={20} /> : <FaMicrophone size={20} />}
               </button>
 
               <button
-                onClick={() => setIsCameraOff(!isCameraOff)}
+                onClick={() => localStream?.getVideoTracks().forEach(t => t.enabled = !isCameraOff)}
                 className={`w-14 h-14 flex items-center justify-center rounded-full transition-all active:scale-90 ${isCameraOff ? 'bg-rose-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
               >
                 {isCameraOff ? <FaVideoSlash size={20} /> : <FaVideo size={20} />}
