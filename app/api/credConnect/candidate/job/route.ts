@@ -1,3 +1,4 @@
+
 // import { NextResponse } from "next/server";
 // import { getServerSession } from "next-auth";
 // import { authOptions } from "@/lib/authOptions";
@@ -7,7 +8,8 @@
 
 // export async function POST(req: Request) {
 //   try {
-//     console.log('hit route...')
+//     console.log("hit route...");
+
 //     const session = await getServerSession(authOptions);
 
 //     if (!session?.user?.id) {
@@ -20,59 +22,76 @@
 //     const body = await req.json();
 //     const { connectId, companyId, connectType, message } = body;
 
-//     if (!companyId || !connectType) {
+//     if (!companyId || !connectType || !connectId) {
 //       return NextResponse.json(
-//         { message: "companyId and type are required" },
+//         { message: "Required fields missing" },
 //         { status: 400 }
 //       );
 //     }
 
 //     await connectDB();
 
+//     const candidateId = new Types.ObjectId(session.user.id);
+//     const companyObjectId = new Types.ObjectId(companyId);
+//     const jobObjectId = new Types.ObjectId(connectId);
+
 //     /**
-//      * Prevent duplicate pending requests
+//      * ✅ Duplicate check (UX level)
+//      * Remove status filter → block forever
 //      */
 //     const existingRequest = await requestmodel.findOne({
-//       "sender.id": session.user.id,
-//       "receiver.id": companyId,
-//       connect_Id:connectId,
+//       "sender.id": candidateId,
+//       connect_Id: jobObjectId,
 //       connectModel: connectType,
-//       status: "PENDING",
 //     });
 
 //     if (existingRequest) {
 //       return NextResponse.json(
-//         { message: "Request already sent" },
+//         { message: "You already applied for this job" },
 //         { status: 409 }
 //       );
 //     }
 
+//     /**
+//      * ✅ Create new request
+//      */
 //     const newRequest = await requestmodel.create({
 //       sender: {
 //         role: "Candidate",
-//         id: new Types.ObjectId(session.user.id),
+//         id: candidateId,
 //       },
 //       receiver: {
 //         role: "Company",
-//         id: new Types.ObjectId(companyId),
+//         id: companyObjectId,
 //       },
-//       connectModel: connectType, // JOB | FREELANCE | INTERNSHIP
-//       connect_Id:connectId,
+//       connectModel: connectType,
+//       connect_Id: jobObjectId,
 //       message,
 //       status: "PENDING",
 //     });
 
-//     console.log('created request successfully for job, data = ',newRequest)
-
 //     return NextResponse.json(
 //       {
-//         message: "Request sent successfully",
+//         message: "Applied successfully",
 //         request: newRequest,
 //       },
 //       { status: 201 }
 //     );
-//   } catch (error) {
+
+//   } catch (error: any) {
+
 //     console.error("REQUEST_CREATE_ERROR:", error);
+
+//     /**
+//      * 🔥 Important: Handle duplicate index error
+//      */
+//     if (error.code === 11000) {
+//       return NextResponse.json(
+//         { message: "You already applied for this job" },
+//         { status: 409 }
+//       );
+//     }
+
 //     return NextResponse.json(
 //       { message: "Internal server error" },
 //       { status: 500 }
@@ -90,6 +109,7 @@ export async function POST(req: Request) {
   try {
     console.log("hit route...");
 
+    // 1️⃣ Auth check
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -99,6 +119,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // 2️⃣ Read body
     const body = await req.json();
     const { connectId, companyId, connectType, message } = body;
 
@@ -109,6 +130,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // 3️⃣ Connect DB
     await connectDB();
 
     const candidateId = new Types.ObjectId(session.user.id);
@@ -116,8 +138,7 @@ export async function POST(req: Request) {
     const jobObjectId = new Types.ObjectId(connectId);
 
     /**
-     * ✅ Duplicate check (UX level)
-     * Remove status filter → block forever
+     * ✅ Duplicate check
      */
     const existingRequest = await requestmodel.findOne({
       "sender.id": candidateId,
@@ -133,7 +154,7 @@ export async function POST(req: Request) {
     }
 
     /**
-     * ✅ Create new request
+     * ✅ Create request
      */
     const newRequest = await requestmodel.create({
       sender: {
@@ -150,6 +171,28 @@ export async function POST(req: Request) {
       status: "PENDING",
     });
 
+    /**
+     * 🔔 Send notification to company (SAFE)
+     * This will NOT break apply if it fails
+     */
+    try {
+      await fetch("http://localhost:4000/api/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: companyId, // company gets notification
+          title: "New Job Application",
+          message: "A candidate applied for your job post",
+         link: `/home/company?job=${connectId}&tab=job-posts`,
+        }),
+      });
+    } catch (notifError) {
+      console.error("Notification send failed:", notifError);
+    }
+
+    // 4️⃣ Return response
     return NextResponse.json(
       {
         message: "Applied successfully",
@@ -163,7 +206,7 @@ export async function POST(req: Request) {
     console.error("REQUEST_CREATE_ERROR:", error);
 
     /**
-     * 🔥 Important: Handle duplicate index error
+     * 🔥 Duplicate index error
      */
     if (error.code === 11000) {
       return NextResponse.json(
