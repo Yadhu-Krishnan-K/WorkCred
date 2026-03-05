@@ -51,6 +51,7 @@ const pastRatings = [
 
 export default function CandidateProfile() {
   const [file, setFile] = useState<File | null>(null)
+  const [isParsing, setIsParsing] = useState(false);
   const [candidate, setCandidate] = useState<CandidateProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isuploading, setIsUploading] = useState(false)
@@ -74,7 +75,7 @@ export default function CandidateProfile() {
         setCandidate(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
-        
+
       } finally {
         setIsLoading(false);
       }
@@ -102,22 +103,53 @@ export default function CandidateProfile() {
     );
   }
 
+  // Logic to handle PDF upload and parsing
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
+    setIsParsing(true);
+    const formData = new FormData();
+    formData.append("resume", file);
+
+    try {
+      const response = await fetch("/api/analyze_resume", { // Change to your actual route
+        method: "POST",
+        body: formData,
+      });
+
+      const parsed = await response.json();
+
+      // Update state with parsed data (mapping your API keys to your state keys)
+      setEditData(prev => ({
+        ...prev,
+        fullName: parsed.name || prev.fullName,
+        experience: parsed.yearsOfExperience || prev.experience,
+        qualification: parsed.education || prev.qualification,
+        description: parsed.summary || prev.description,
+        skills: Array.isArray(parsed.skills) ? parsed.skills.join(", ") : parsed.skills || prev.skills,
+      }));
+    } catch (err) {
+      console.error("Resume parsing failed:", err);
+    } finally {
+      setIsParsing(false);
+    }
+  };
   const handleUpdateProfile = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await fetch('/api/profile/candidate/updateDetails', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editData),
-    });
+    try {
+      const res = await fetch('/api/profile/candidate/updateDetails', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      });
 
-    if (!res.ok) throw new Error("Update failed");
+      if (!res.ok) throw new Error("Update failed");
 
-    setCandidate(prev =>
-      prev
-        ? {
+      setCandidate(prev =>
+        prev
+          ? {
             ...prev,
             ...editData,
             skills: editData.skills
@@ -125,42 +157,42 @@ export default function CandidateProfile() {
               .map(s => s.trim())
               .filter(Boolean),
           }
-        : null
-    );
-    setIsModalOpen(false);
-  } catch (err) {
-    alert("Error updating profile");
-  }
-};
+          : null
+      );
+      setIsModalOpen(false);
+    } catch (err) {
+      alert("Error updating profile");
+    }
+  };
 
 
 
   const handleUpload = async (file: File) => {
-  const formData = new FormData();
-  formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
 
-  try {
-    setIsUploading(true)
-    const res = await fetch("/api/upload/profile-image", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      setIsUploading(true)
+      const res = await fetch("/api/upload/profile-image", {
+        method: "POST",
+        body: formData,
+      });
 
-    if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) throw new Error("Upload failed");
 
-    const data = await res.json();
-    console.log('data = ',data)
-    // 🔥 Update profile image instantly
-    setCandidate(prev =>
-      prev ? { ...prev, profileImageUrl: data.imageUrl } : null
-    );
-  } catch (err) {
-    console.log('error = ',err)
-    alert("Image upload failed");
-  }finally{
-    setIsUploading(false)
-  }
-};
+      const data = await res.json();
+      console.log('data = ', data)
+      // 🔥 Update profile image instantly
+      setCandidate(prev =>
+        prev ? { ...prev, profileImageUrl: data.imageUrl } : null
+      );
+    } catch (err) {
+      console.log('error = ', err)
+      alert("Image upload failed");
+    } finally {
+      setIsUploading(false)
+    }
+  };
 
 
   return (
@@ -193,17 +225,17 @@ export default function CandidateProfile() {
             <div className="w-40 h-40 rounded-[2.5rem] bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 p-1 shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
               <div className="w-full h-full rounded-[2.3rem] bg-white overflow-hidden relative">
                 {
-                isuploading?(
-                  <div className="w-full h-full flex justify-center items-center">
-                    <div className="w-6 h-6 border-2 border-fuchsia-500 border-t-white rounded-full animate-spin" />
-                  </div>
-              )
-                :candidate?.profileImageUrl ? (
-                  <Image src={candidate.profileImageUrl} alt="Profile" fill className="object-cover" />
-                ) :
-                 (<div className="w-full h-full flex items-center justify-center bg-slate-50">
-                    <FaRegUserCircle className="w-20 h-20 text-slate-200" />
-                  </div>)
+                  isuploading ? (
+                    <div className="w-full h-full flex justify-center items-center">
+                      <div className="w-6 h-6 border-2 border-fuchsia-500 border-t-white rounded-full animate-spin" />
+                    </div>
+                  )
+                    : candidate?.profileImageUrl ? (
+                      <Image src={candidate.profileImageUrl} alt="Profile" fill className="object-cover" />
+                    ) :
+                      (<div className="w-full h-full flex items-center justify-center bg-slate-50">
+                        <FaRegUserCircle className="w-20 h-20 text-slate-200" />
+                      </div>)
                 }
               </div>
             </div>
@@ -228,7 +260,7 @@ export default function CandidateProfile() {
 
                 setFile(selectedFile);
                 handleUpload(selectedFile);
-            }}
+              }}
             />
 
           </div>
@@ -378,114 +410,125 @@ export default function CandidateProfile() {
       </footer>
 
 
-    <AnimatePresence>
-  {isModalOpen && (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* 1. KEEP YOUR EXISTING BACKDROP */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={() => setIsModalOpen(false)}
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
-      />
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+            />
 
-      {/* 2. REPLACE THE OLD MODAL CARD WITH THE NEW CODE BELOW */}
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl border border-white overflow-hidden max-h-[90vh] overflow-y-auto"
-      >
-        <div className="p-10">
-          <div className="mb-8">
-            <div className="w-12 h-2 bg-emerald-500 rounded-full mb-4" />
-            <h3 className="text-3xl font-black text-slate-800">Refine Persona</h3>
-            <p className="text-sm text-slate-500 font-medium">Your credentials define your visibility on WorkCred.</p>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl border border-white overflow-hidden max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-10">
+                {/* Header & Resume Upload */}
+                <div className="mb-8 flex justify-between items-start">
+                  <div>
+                    <div className="w-12 h-2 bg-emerald-500 rounded-full mb-4" />
+                    <h3 className="text-3xl font-black text-slate-800">Refine Persona</h3>
+                    <p className="text-sm text-slate-500 font-medium">Auto-fill your profile with a PDF.</p>
+                  </div>
+
+                  {/* Resume Upload Button */}
+                  <label className={`relative group cursor-pointer flex flex-col items-center justify-center w-24 h-24 rounded-3xl border-2 border-dashed transition-all ${isParsing ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 hover:border-emerald-400 bg-slate-50'}`}>
+                    <input type="file" className="hidden" accept=".pdf" onChange={handleResumeUpload} disabled={isParsing} />
+                    {isParsing ? (
+                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent" />
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                        <span className="text-[9px] font-black uppercase text-slate-400 group-hover:text-emerald-600 text-center">Upload PDF</span>
+                      </>
+                    )}
+                  </label>
+                </div>
+
+                <form onSubmit={handleUpdateProfile} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Display Name */}
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Display Name</label>
+                      <input
+                        type="text"
+                        value={editData.fullName}
+                        onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-bold"
+                      />
+                    </div>
+
+                    {/* Experience & Qualification */}
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Experience Level</label>
+                      <input
+                        type="text"
+                        value={editData.experience}
+                        onChange={(e) => setEditData({ ...editData, experience: e.target.value })}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Qualification</label>
+                      <input
+                        type="text"
+                        value={editData.qualification}
+                        onChange={(e) => setEditData({ ...editData, qualification: e.target.value })}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-bold"
+                      />
+                    </div>
+
+                    {/* Bio */}
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Professional Bio</label>
+                      <textarea
+                        rows={3}
+                        value={editData.description}
+                        onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-medium leading-relaxed"
+                      />
+                    </div>
+
+                    {/* Skills */}
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Skills</label>
+                      <input
+                        type="text"
+                        value={editData.skills}
+                        onChange={(e) => setEditData({ ...editData, skills: e.target.value })}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-4 pt-6">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="flex-1 py-5 rounded-2xl bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest hover:bg-slate-100 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-5 rounded-2xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-600 shadow-xl transition-all active:scale-95"
+                    >
+                      Update Portfolio
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
           </div>
-
-          <form onSubmit={handleUpdateProfile} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Name */}
-              <div className="md:col-span-2">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Display Name</label>
-                <input
-                  type="text"
-                  value={editData.fullName}
-                  onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-bold"
-                />
-              </div>
-
-              {/* Experience */}
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Experience Level</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 5+ Years"
-                  value={editData.experience}
-                  onChange={(e) => setEditData({ ...editData, experience: e.target.value })}
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-bold"
-                />
-              </div>
-
-              {/* Qualification */}
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Qualification</label>
-                <input
-                  type="text"
-                  placeholder="e.g. B.Tech in IT"
-                  value={editData.qualification}
-                  onChange={(e) => setEditData({ ...editData, qualification: e.target.value })}
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-bold"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="md:col-span-2">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Professional Bio</label>
-                <textarea
-                  rows={3}
-                  value={editData.description}
-                  onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-medium leading-relaxed"
-                />
-              </div>
-
-              {/* Skills */}
-              <div className="md:col-span-2">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Skills (Comma separated)</label>
-                <input
-                  type="text"
-                  value={editData.skills}
-                  onChange={(e) => setEditData({ ...editData, skills: e.target.value })}
-                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all outline-none text-sm font-bold"
-                  placeholder="React, Tailwind, Node.js"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-4 pt-6">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="flex-1 py-5 rounded-2xl bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest hover:bg-slate-100 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 py-5 rounded-2xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-600 shadow-xl transition-all active:scale-95"
-              >
-                Update Portfolio
-              </button>
-            </div>
-          </form>
-        </div>
-      </motion.div>
-    </div>
-  )}
-</AnimatePresence>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
