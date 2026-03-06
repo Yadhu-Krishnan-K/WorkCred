@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, SchemaType, Schema } from "@google/generative-ai";
-import {PDFParse} from 'pdf-parse'
-import {} f
+
+import pdf from 'pdf-parse-new'
 
 export const runtime = "nodejs";
 
@@ -20,6 +20,7 @@ const resumeSchema: Schema = {
   },
   required: ["fullName", "industry", "missingFields"],
 };
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,18 +41,12 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     console.log('buffer created!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    // Extract text from PDF
-    // const pdfData = await pdf(buffer);
-    // const resumeText = pdfData.text;
 
-    // const arr = new Uint8Array(buffer);
-    const parser = new PDFParse({
-      data:buffer
-    })
-    console.log('parsing resume 1st pace))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))',parser)
-    const parsedResult = await parser.getText()
+    const parsedData = await pdf(buffer)
+    console.log('parsing resume 1st pace))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))')
+
     console.log('parsed resume##############################################################################################################3')
-    const resumeText = parsedResult.text; // We expect { "text": "..." } from Postman
+    const resumeText = parsedData.text; // We expect { "text": "..." } from Postman
 
     console.log('resumeText after parsing = ',resumeText)
 
