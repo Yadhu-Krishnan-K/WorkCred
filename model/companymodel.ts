@@ -50,7 +50,7 @@ profileImageUrl: {
     },
      city: {
   type: String,
-  required: true,
+
 },
 
 
