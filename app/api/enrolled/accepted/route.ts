@@ -33,11 +33,16 @@ export async function GET(req: Request) {
       "sender.id": objectId,
       status: "ACCEPTED",
     })
-    .populate("receiver.id"); // populate company
+    .populate({
+      path: "receiver.id",
+      select: "-password",
+    }) // populate company\
     console.log(requests,888)
 
     // Extract companies
-    const companies = requests.map((r) => r.receiver.id);
+    const companieset = new Set(requests.map((r) => r.receiver.id))
+    const companies = Array.from(companieset)
+
 
     return NextResponse.json({
       success: true,
