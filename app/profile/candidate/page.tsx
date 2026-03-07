@@ -11,6 +11,7 @@ import { EnrolledPath } from "@/components/candidate/profile/EnrolledPath";
 import { FeedbackSection } from "@/components/candidate/profile/FeedbackSection";
 import { EditProfileModal } from "@/components/candidate/profile/EditProfileModal";
 import { PdfModal } from "@/components/candidate/profile/PdfModal";
+import { ProfileCompanyDetailModal } from "@/components/candidate/profile/ProfileCompanyDetailModal";
 
 // Types
 export interface CandidateProfileResponse {
@@ -46,6 +47,8 @@ export default function CandidateProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [isuploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<any | null>(null);
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState({
@@ -97,6 +100,11 @@ export default function CandidateProfile() {
       </div>
     );
   }
+
+  const handleShowCompany = (company: any) => {
+    setSelectedCompany(company);
+    setIsCompanyModalOpen(true);
+  };
 
   // Logic to handle PDF upload and parsing
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,6 +256,7 @@ export default function CandidateProfile() {
           {/* Right Column: Companies */}
           <AcceptedRequests
             companies={acceptedCompanies}
+            onSelectCompany={handleShowCompany}
           />
 
         </div>
@@ -273,6 +282,12 @@ export default function CandidateProfile() {
         isOpen={isResumePreviewOpen} 
         onClose={() => setIsResumePreviewOpen(false)} 
         pdfUrl={candidate?.pdfUrl}
+      />
+
+      <ProfileCompanyDetailModal
+        isOpen={isCompanyModalOpen}
+        onClose={() => setIsCompanyModalOpen(false)}
+        company={selectedCompany}
       />
     </div>
   );

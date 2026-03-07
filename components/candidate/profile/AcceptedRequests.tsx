@@ -1,8 +1,7 @@
 import Image from "next/image";
 import { FaBuilding, FaCheckCircle, FaArrowDown, FaRocket } from "react-icons/fa";
 
-export const AcceptedRequests = ({ companies }: { companies: any[] }) => (
-  <aside>
+export const AcceptedRequests = ({ companies, onSelectCompany }: { companies: any[], onSelectCompany: (c: any) => void }) => (  <aside>
     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-6">
       <span className="w-2 h-6 bg-blue-500 rounded-full" />
       Requests Accepted
@@ -12,7 +11,11 @@ export const AcceptedRequests = ({ companies }: { companies: any[] }) => (
         <>
           <div className="space-y-6">
             {companies.map((company, i) => (
-              <div key={i} className="flex items-center gap-4 group cursor-pointer">
+              <div 
+                key={i} 
+                className="flex items-center gap-4 group cursor-pointer"
+                onClick={() => onSelectCompany(company)}
+              >
                 <div className="relative w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 overflow-hidden">
                   {company.profileImageUrl ? (
                     <Image src={company.profileImageUrl} alt="Logo" fill className="object-cover" />
