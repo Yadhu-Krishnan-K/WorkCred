@@ -15,6 +15,7 @@ export interface CandidateDocument extends Document{
   qualification?: string;
   avgRating: number;
   
+  pdfUrl?: string;
   profileImageUrl?: string;
   profileImagePublicId?: string;
 
@@ -86,6 +87,11 @@ const CandidateSchema = new Schema<CandidateDocument>(
       default: 5,
       min: 0,
       max: 5,
+    },
+
+    pdfUrl:{
+      type: String,
+      default: null,
     },
 
     profileImageUrl: {

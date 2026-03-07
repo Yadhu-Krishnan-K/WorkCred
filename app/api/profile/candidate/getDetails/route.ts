@@ -18,7 +18,7 @@ export async function GET(req:Request){
     await connectDB();
     
     const candidate = await candidatemodel.findById(session.user.id).select('-password')
-
+    console.log('candidate = ',candidate)
     if (!candidate) {
       return NextResponse.json(
         { message: "Candidate not found" },
