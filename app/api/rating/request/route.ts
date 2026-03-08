@@ -19,6 +19,12 @@ export async function POST(req: Request) {
   const { receiverId, roomId, type } = body;
 
   const senderId = session.user.id;
+  let existing =await RatingRequest.findOne({
+    receiverId,senderId
+  })
+  if(existing){
+     return NextResponse.json({ message: "already existing" }, { status: 400 });
+  }
 
   const request = await RatingRequest.create({
     senderId,

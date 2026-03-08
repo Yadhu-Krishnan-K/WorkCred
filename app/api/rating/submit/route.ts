@@ -42,6 +42,7 @@ export async function POST(req: Request) {
     );
   }
 
+
   if (
     currentUserId !== request.senderId &&
     currentUserId !== request.receiverId
@@ -52,17 +53,33 @@ export async function POST(req: Request) {
     );
   }
 
-  const receiverId =
-    currentUserId === request.senderId
-      ? request.receiverId
-      : request.senderId;
+  
+  let receiverId: string;
+
+  if (request.senderId === currentUserId) {
+    receiverId = request.receiverId;
+  } else {
+    receiverId = request.senderId;
+  }
+
+
+  if (receiverId === currentUserId) {
+    return NextResponse.json(
+      { message: "You cannot rate yourself" },
+      { status: 400 }
+    );
+  }
 
   const existing = await Rating.findOne({
-    requestId,
+    receiverId ,
+    
     senderId: currentUserId
   });
+  console.log(existing,888)
+  console.log("appleeeee")
 
   if (existing) {
+    console.log("yadhuu krishnan")
     return NextResponse.json(
       { message: "Rating already submitted" },
       { status: 400 }
