@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -25,6 +24,9 @@ export default function ChatPage() {
 
   const [callTarget, setCallTarget] = useState<string>("");
 
+  // ⭐ NEW STATE
+  const [ratingRequested, setRatingRequested] = useState(false);
+
   const searchParams = useSearchParams();
 
   const senderId = searchParams.get("sender");
@@ -37,12 +39,11 @@ export default function ChatPage() {
       ? `${senderId}_${receiverId}`
       : `${receiverId}_${senderId}`;
 
-  // ⭐ Request Rating (FIXED)
+  // ⭐ Request Rating
   const requestRating = async () => {
 
     try {
 
-      // determine rating type automatically
       const type =
         senderId < receiverId
           ? "userToCompany"
@@ -66,6 +67,9 @@ export default function ChatPage() {
       console.log("Rating request created:", data);
 
       alert("Rating request sent");
+
+      // ⭐ disable button after sending
+      setRatingRequested(true);
 
     } catch (err) {
 
@@ -114,6 +118,30 @@ export default function ChatPage() {
     loadMessages();
 
   }, [senderId, receiverId]);
+
+  // ⭐ Check if rating request already exists
+  useEffect(() => {
+
+    const checkRatingRequest = async () => {
+
+      try {
+
+        const res = await fetch(`/api/rating/request/check/${roomId}`);
+        const data = await res.json();
+
+        if (data.exists) {
+          setRatingRequested(true);
+        }
+
+      } catch (err) {
+        console.error("Check rating request error:", err);
+      }
+
+    };
+
+    checkRatingRequest();
+
+  }, [roomId]);
 
   // Socket handling
   useEffect(() => {
@@ -187,10 +215,10 @@ export default function ChatPage() {
 
             <button
               onClick={requestRating}
-              className="px-4 py-2 bg-purple-600 text-white rounded-md font-semibold hover:bg-purple-700"
-              
+              disabled={ratingRequested}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md font-semibold hover:bg-purple-700 disabled:bg-gray-400"
             >
-              Request Rating
+              {ratingRequested ? "Rating Requested" : "Request Rating"}
             </button>
 
             <button
