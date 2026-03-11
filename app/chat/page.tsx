@@ -1,12 +1,9 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { socket } from "@/lib/socket";
 import { VideoCallModal } from "@/components/VideoCall/videoCallModal";
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 interface Message {
   senderId: string;
@@ -17,18 +14,15 @@ interface Message {
 
 export default function ChatPage() {
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [text, setText] = useState("");
-
-  const [isCalling, setIsCalling] = useState(false);
-  const [callRole, setCallRole] = useState<"caller" | "receiver" | null>(null);
-
-  const [callTarget, setCallTarget] = useState<string>("");
-
   const searchParams = useSearchParams();
 
-  const senderId = searchParams.get("sender");
-  const receiverId = searchParams.get("receiver");
+  const senderId = searchParams.get("sender") || "";
+  const receiverId = searchParams.get("receiver") || "";
+  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",typeof senderId, typeof receiverId)
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [text, setText] = useState("");
+  const [callOpen, setCallOpen] = useState(false);
 
   if (!senderId || !receiverId) return null;
 
@@ -37,69 +31,16 @@ export default function ChatPage() {
       ? `${senderId}_${receiverId}`
       : `${receiverId}_${senderId}`;
 
-  // ⭐ Request Rating (FIXED)
-  const requestRating = async () => {
 
-    try {
+  console.log('roomId ========',roomId)
+  console.log('type of roomId = ',typeof roomId)
 
-      // determine rating type automatically
-      const type =
-        senderId < receiverId
-          ? "userToCompany"
-          : "companyToUser";
-
-      const res = await fetch("/api/rating/request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          receiverId,
-          roomId,
-          type
-        }),
-      });
-
-      const data = await res.json();
-
-      console.log("Rating request created:", data);
-
-      alert("Rating request sent");
-
-    } catch (err) {
-
-      console.error("Rating request error:", err);
-
-    }
-
-  };
-
-  // Helper function to trigger call
-  const startCall = async (name: string) => {
-
-    const callDoc = doc(db, "calls", roomId);
-
-    await setDoc(callDoc, {
-      callerId: senderId,
-      receiverId: receiverId,
-      status: "ringing",
-      createdAt: Date.now(),
-      endedAt: null,
-      offer: null,
-      answer: null,
-    });
-
-    setCallTarget(name);
-    setCallRole("caller");
-    setIsCalling(true);
-
-  };
-
-  // Load old messages
+  // -------------------------------
+  // Load previous messages
+  // -------------------------------
   useEffect(() => {
 
-    const loadMessages = async () => {
+    async function loadMessages() {
 
       const res = await fetch(
         `http://localhost:4000/api/chat/${senderId}/${receiverId}`
@@ -109,52 +50,50 @@ export default function ChatPage() {
 
       setMessages(data);
 
-    };
+    }
 
     loadMessages();
 
   }, [senderId, receiverId]);
 
-  // Socket handling
+
+  // -------------------------------
+  // Socket setup
+  // -------------------------------
   useEffect(() => {
 
+    socket.emit("registerUser", senderId);
     socket.emit("joinRoom", roomId);
 
-    socket.on("receiveMessage", (data: Message) => {
-      setMessages((prev) => [...prev, data]);
-    });
+    const handleMessage = (data: Message) => {
+    setMessages(prev => [...prev, data]);
+  };
 
-    return () => {
-      socket.off("receiveMessage");
-    };
+  const handleIncomingCall = (data:any) => {
+    if(data.roomId === roomId) setCallOpen(true);
+  };
 
-  }, [roomId]);
+  const handleEndCall = () => {
+    setCallOpen(false);
+  };
 
-  // WebRTC handling
-  useEffect(() => {
+  socket.on("receiveMessage", handleMessage);
+  socket.on("incoming-call", handleIncomingCall);
+  socket.on("call-ended", handleEndCall);
 
-    const callDoc = doc(db, "calls", roomId);
-
-    const unsub = onSnapshot(callDoc, (snap) => {
-
-      const data = snap.data();
-
-      if (!data) return;
-
-      if (data.status === "ringing" && data.receiverId === senderId) {
-
-        setCallRole("receiver");
-        setIsCalling(true);
-
-      }
-
-    });
-
-    return () => unsub();
+  return () => {
+    socket.off("receiveMessage", handleMessage);
+    socket.off("incoming-call", handleIncomingCall);
+    socket.off("call-ended", handleEndCall);
+  };
 
   }, [roomId, senderId]);
 
-  const sendMessage = () => {
+
+  // -------------------------------
+  // Send message
+  // -------------------------------
+  function sendMessage() {
 
     if (!text.trim()) return;
 
@@ -169,13 +108,81 @@ export default function ChatPage() {
 
     setText("");
 
-  };
+  }
+
+
+  // -------------------------------
+  // Start Call
+  // -------------------------------
+  function startCall() {
+
+    setCallOpen(true);
+
+    socket.emit("call-user", {
+      from: senderId,
+      to: receiverId,
+      roomId
+    });
+
+  }
+
+
+  // -------------------------------
+  // End Call
+  // -------------------------------
+  function endCall() {
+
+    socket.emit("end-call",  receiverId );
+
+    setCallOpen(false);
+
+  }
+
+
+  // -------------------------------
+  // Request Rating
+  // -------------------------------
+  async function requestRating() {
+
+    try {
+
+      const type =
+        senderId < receiverId
+          ? "userToCompany"
+          : "companyToUser";
+
+      const res = await fetch("/api/rating/request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          receiverId,
+          roomId,
+          type
+        }),
+      });
+
+      await res.json();
+
+      alert("Rating request sent");
+
+    } catch (err) {
+
+      console.error("Rating request error:", err);
+
+    }
+
+  }
+
 
   return (
 
     <>
 
       <div className="h-screen flex flex-col bg-gradient-to-br from-slate-100 to-slate-200">
+
+        {/* Header */}
 
         <div className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
 
@@ -188,14 +195,13 @@ export default function ChatPage() {
             <button
               onClick={requestRating}
               className="px-4 py-2 bg-purple-600 text-white rounded-md font-semibold hover:bg-purple-700"
-              
             >
               Request Rating
             </button>
 
             <button
+              onClick={startCall}
               className="rounded border-none bg-blue-700 text-amber-50 cursor-pointer px-4 py-2 hover:bg-blue-800"
-              onClick={() => startCall("abc")}
             >
               Video Call
             </button>
@@ -207,6 +213,9 @@ export default function ChatPage() {
           </span>
 
         </div>
+
+
+        {/* Messages */}
 
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
 
@@ -222,14 +231,11 @@ export default function ChatPage() {
               >
 
                 <div
-                  className={`
-                    max-w-xs md:max-w-md px-4 py-3 rounded-2xl shadow-md text-sm
-                    ${
-                      isMe
-                        ? "bg-emerald-500 text-white rounded-br-sm"
-                        : "bg-white text-slate-800 rounded-bl-sm"
-                    }
-                  `}
+                  className={`max-w-xs md:max-w-md px-4 py-3 rounded-2xl shadow-md text-sm ${
+                    isMe
+                      ? "bg-emerald-500 text-white rounded-br-sm"
+                      : "bg-white text-slate-800 rounded-bl-sm"
+                  }`}
                 >
 
                   {msg.message || (
@@ -246,18 +252,21 @@ export default function ChatPage() {
 
         </div>
 
+
+        {/* Message Input */}
+
         <div className="bg-white p-4 border-t flex items-center gap-3">
 
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 px-4 py-3 rounded-full bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+            className="flex-1 px-4 py-3 rounded-full bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
           />
 
           <button
             onClick={sendMessage}
-            className="px-6 py-3 bg-emerald-500 text-white rounded-full font-semibold hover:bg-emerald-600 active:scale-95 transition-all shadow-md"
+            className="px-6 py-3 bg-emerald-500 text-white rounded-full font-semibold hover:bg-emerald-600"
           >
             Send
           </button>
@@ -266,12 +275,15 @@ export default function ChatPage() {
 
       </div>
 
+
+      {/* Video Call Modal */}
+
       <VideoCallModal
-        isOpen={isCalling}
-        onClose={() => setIsCalling(false)}
-        participantName={callRole === "caller" ? receiverId : senderId}
-        callId={roomId}
-        role={callRole!}
+        isOpen={callOpen}
+        roomId={roomId}
+        userId={senderId}
+        userName={senderId}
+        onClose={endCall}
       />
 
     </>

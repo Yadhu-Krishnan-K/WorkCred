@@ -36,7 +36,6 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
     console.log('callstate on initial 5555555555555555555555', callState)
 
 
-
     useEffect(() => {
         const callDoc = doc(db, "calls", callId);
 
@@ -52,10 +51,6 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
 
         return () => unsub();
     }, [callId, callState]); // Add callState to dependencies to ensure logic has latest value
-
-
-
-
 
 
     const createPeerConnection = () => {
@@ -127,9 +122,6 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
     };
 
 
-
-
-
     const getLocalMedia = async () => {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: true,
@@ -143,9 +135,6 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
             pcRef.current?.addTrack(track, stream);
         });
     };
-
-
-
 
 
     const startAsCaller = async () => {
@@ -166,18 +155,18 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
         const pc = createPeerConnection();
         await getLocalMedia();
 
-        pc.onicecandidate = (event) => {
+        pc.onicecandidate = (event) => {//this will work when line165 work
             if (event.candidate) {
                 addDoc(offerCandidates, event.candidate.toJSON());
             }
         };
 
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+        const createdOffer = await pc.createOffer();
+        await pc.setLocalDescription(createdOffer);
 
         // Use updateDoc instead of setDoc to avoid wiping out the whole document
         await updateDoc(callDoc, {
-            offer: { type: offer.type, sdp: offer.sdp },
+            offer: { type: createdOffer.type, sdp: createdOffer.sdp },
             status: "ringing"
         });
         console.log("Caller: Offer sent to Firebase");
@@ -201,9 +190,6 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
 
         cleanupFns.current.push(unsubAnswer, unsubAnswerIce);
     };
-
-
-
 
 
     const startAsReceiver = async () => {
@@ -288,9 +274,6 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
     };
 
 
-
-
-
     const endCall = async (skipUpdate = false) => {
         console.log('ending call ======usewebrtchook line 230>>>>>>>>>>>>>>>')
         console.log('callId from hook line 231 ===============', callId)
@@ -326,14 +309,12 @@ export function useWebRTCCall({ callId, role }: UseWebRTCCallProps) {
     };
 
 
-
-
-
     return {
         localStream,
         remoteStream,
         callState,
         startCall,
-        endCall
+        endCall,
+        createPeerConnection
     };
 }
