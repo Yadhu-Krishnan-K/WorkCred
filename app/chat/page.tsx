@@ -15,10 +15,11 @@ interface Message {
 export default function ChatPage() {
 
   const searchParams = useSearchParams();
+  const [ratingRequested, setRatingRequested] = useState(false);
 
   const senderId = searchParams.get("sender") || "";
   const receiverId = searchParams.get("receiver") || "";
-  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",typeof senderId, typeof receiverId)
+  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", typeof senderId, typeof receiverId)
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
@@ -32,8 +33,8 @@ export default function ChatPage() {
       : `${receiverId}_${senderId}`;
 
 
-  console.log('roomId ========',roomId)
-  console.log('type of roomId = ',typeof roomId)
+  console.log('roomId ========', roomId)
+  console.log('type of roomId = ', typeof roomId)
 
   // -------------------------------
   // Load previous messages
@@ -57,6 +58,32 @@ export default function ChatPage() {
   }, [senderId, receiverId]);
 
 
+  // ⭐ Check if rating request already exists
+  useEffect(() => {
+
+    const checkRatingRequest = async () => {
+
+      try {
+
+        const res = await fetch(`/api/rating/request/check/${roomId}`);
+        const data = await res.json();
+
+        if (data.exists) {
+          setRatingRequested(true);
+        }
+
+      } catch (err) {
+        console.error("Check rating request error:", err);
+      }
+
+    };
+
+    checkRatingRequest();
+
+  }, [roomId]);
+
+
+
   // -------------------------------
   // Socket setup
   // -------------------------------
@@ -66,26 +93,26 @@ export default function ChatPage() {
     socket.emit("joinRoom", roomId);
 
     const handleMessage = (data: Message) => {
-    setMessages(prev => [...prev, data]);
-  };
+      setMessages(prev => [...prev, data]);
+    };
 
-  const handleIncomingCall = (data:any) => {
-    if(data.roomId === roomId) setCallOpen(true);
-  };
+    const handleIncomingCall = (data: any) => {
+      if (data.roomId === roomId) setCallOpen(true);
+    };
 
-  const handleEndCall = () => {
-    setCallOpen(false);
-  };
+    const handleEndCall = () => {
+      setCallOpen(false);
+    };
 
-  socket.on("receiveMessage", handleMessage);
-  socket.on("incoming-call", handleIncomingCall);
-  socket.on("call-ended", handleEndCall);
+    socket.on("receiveMessage", handleMessage);
+    socket.on("incoming-call", handleIncomingCall);
+    socket.on("call-ended", handleEndCall);
 
-  return () => {
-    socket.off("receiveMessage", handleMessage);
-    socket.off("incoming-call", handleIncomingCall);
-    socket.off("call-ended", handleEndCall);
-  };
+    return () => {
+      socket.off("receiveMessage", handleMessage);
+      socket.off("incoming-call", handleIncomingCall);
+      socket.off("call-ended", handleEndCall);
+    };
 
   }, [roomId, senderId]);
 
@@ -132,7 +159,7 @@ export default function ChatPage() {
   // -------------------------------
   function endCall() {
 
-    socket.emit("end-call",  receiverId );
+    socket.emit("end-call", receiverId);
 
     setCallOpen(false);
 
@@ -167,6 +194,9 @@ export default function ChatPage() {
 
       alert("Rating request sent");
 
+      // ⭐ disable button after sending
+      setRatingRequested(true);
+
     } catch (err) {
 
       console.error("Rating request error:", err);
@@ -194,9 +224,10 @@ export default function ChatPage() {
 
             <button
               onClick={requestRating}
-              className="px-4 py-2 bg-purple-600 text-white rounded-md font-semibold hover:bg-purple-700"
+              disabled={ratingRequested}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md font-semibold hover:bg-purple-700 disabled:bg-gray-400"
             >
-              Request Rating
+              {ratingRequested ? "Rating Requested" : "Request Rating"}
             </button>
 
             <button
@@ -231,11 +262,10 @@ export default function ChatPage() {
               >
 
                 <div
-                  className={`max-w-xs md:max-w-md px-4 py-3 rounded-2xl shadow-md text-sm ${
-                    isMe
+                  className={`max-w-xs md:max-w-md px-4 py-3 rounded-2xl shadow-md text-sm ${isMe
                       ? "bg-emerald-500 text-white rounded-br-sm"
                       : "bg-white text-slate-800 rounded-bl-sm"
-                  }`}
+                    }`}
                 >
 
                   {msg.message || (
