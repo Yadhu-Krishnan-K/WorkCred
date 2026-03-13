@@ -16,17 +16,19 @@ import { Sidebar } from "@/components/admin/Sidebar";
 import { fetchData } from "next-auth/client/_utils";
 
 type Candidate = {
-  _id: string
-  fullName: string
-  email: string
-  isVerified: boolean
+  _id: string;
+  fullName: string;
+  email: string;
+  isVerified: boolean;
+  isBlocked: boolean;
 }
 
 type Company = {
-  _id: string
-  companyName: string
-  email: string
-  isVerified: boolean
+  _id: string;
+  companyName: string;
+  email: string;
+  isVerified: boolean;
+  isBlocked: boolean;
 }
 
 export default function AdminDashboard() {
@@ -74,8 +76,22 @@ export default function AdminDashboard() {
 
     fetchData()
   }
-  const blockOrUnblockItem = (id: string) => console.log("Action: Delete", id);
-  // const verifyEntity = (id: string) => console.log("Action: Verify", id);
+  const blockOrUnblockItem = async(id: string) => {
+    const type = activeTab === "users" ? "candidate" : "company"
+
+    await fetch("/api/admin/toggle-block", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id,
+        type
+      })
+    })
+
+    fetchData()
+  }
 
   return (
     <div className="flex min-h-screen bg-[#050505] text-gray-300 selection:bg-amber-500/30">
@@ -84,7 +100,7 @@ export default function AdminDashboard() {
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* 2. Main Content Area */}
-      <main className="flex-grow p-10 max-w-7xl mx-auto w-full">
+      <main className="grow p-10 max-w-7xl mx-auto w-full">
 
         {/* Top Utility Bar */}
         <div className="flex justify-between items-center mb-12">
@@ -116,10 +132,10 @@ export default function AdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden bg-white/[0.02] border border-white/10 rounded-[2.5rem] shadow-2xl backdrop-blur-md"
+          className="relative overflow-hidden bg-white/2 border border-white/10 rounded-[2.5rem] shadow-2xl backdrop-blur-md"
         >
           <table className="w-full text-left border-collapse">
-            <thead className="bg-white/[0.03] text-gray-500 uppercase text-[11px] tracking-[0.2em] font-black">
+            <thead className="bg-white/3 text-gray-500 uppercase text-[11px] tracking-[0.2em] font-black">
               <tr>
                 <th className="px-10 py-6">Identity</th>
                 <th className="px-10 py-6">Verification</th>
@@ -129,12 +145,12 @@ export default function AdminDashboard() {
             <tbody className="divide-y divide-white/5">
               {(activeTab === "users" ? candidates : companies).map(
                 (item: Candidate | Company, index) => (
-                  <tr key={item._id} className="group hover:bg-white/[0.02] transition-colors">
+                  <tr key={item._id} className="group hover:bg-white/2 transition-colors">
 
                     <td className="px-10 py-7">
                       <div className="flex items-center gap-5">
 
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 border border-white/10 flex items-center justify-center text-amber-500 font-bold">
+                        <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-gray-800 to-gray-900 border border-white/10 flex items-center justify-center text-amber-500 font-bold">
                           {"fullName" in item
                             ? item.fullName.charAt(0)
                             : item.companyName.charAt(0)}
@@ -179,17 +195,10 @@ export default function AdminDashboard() {
                           onClick={() => verifyEntity(item._id)}
                         />
 
-                        {/* <ActionButton
-                          icon={<Edit3 size={18} />}
-                          label="Edit"
-                          color="hover:text-blue-400 hover:bg-blue-500/10"
-                          onClick={() => editItem(item._id)}
-                        /> */}
-
                         <ActionButton
-                          icon={<Trash2 size={18} />}
-                          label="Delete"
-                          color="hover:text-red-400 hover:bg-red-500/10"
+                          icon={item.isBlocked?<LockIcon size={18} />:<LockOpenIcon size={18} />}
+                          label={`${item.isBlocked?"blocked":"not blokced"}`}
+                          color={`${item.isBlocked?"hover:text-red-400 hover:bg-red-500/10":"hover:text-emerald-400 hover:bg-emerald-500/10"}`}
                           onClick={() => blockOrUnblockItem(item._id)}
                         />
 
