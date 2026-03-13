@@ -84,7 +84,7 @@ const CandidateSchema = new Schema<CandidateDocument>(
 
     avgRating: {
       type: Number,
-      default: 5,
+      default: 0,
       min: 0,
       max: 5,
     },
