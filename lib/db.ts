@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { seedAdmin } from "./seedAdmin";
 
 const MONGODB_URI=process.env.MONGODB_URI as string
 
@@ -14,6 +15,7 @@ export async function connectDB(){
         await mongoose.connect(MONGODB_URI,{
             dbName:"WorkCred"
         })
+        await seedAdmin()
         console.log("successfully connected")
     } catch (error) {
         console.log("connection error",error)
