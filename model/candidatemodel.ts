@@ -5,6 +5,7 @@ export interface CandidateDocument extends Document{
   email: string;
   password: string;
   isVerified: boolean;
+  isBlocked: boolean;
 
   paymentStatus:string;
   successViewed:boolean;
@@ -44,6 +45,10 @@ const CandidateSchema = new Schema<CandidateDocument>(
     },
 
     isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isBlocked: {
       type: Boolean,
       default: false,
     },

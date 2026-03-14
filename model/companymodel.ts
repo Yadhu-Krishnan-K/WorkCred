@@ -6,6 +6,7 @@ export interface CompanyDocument extends Document {
   password:string;
   companyType: string;
   isVerified: boolean;
+  isBlocked: boolean;
   createdAt: Date;
   updatedAt: Date;
    description:string;
@@ -71,6 +72,10 @@ profileImageUrl: {
       type: Boolean,
       default: false,
     },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    }
   },
   {
     timestamps: true,
