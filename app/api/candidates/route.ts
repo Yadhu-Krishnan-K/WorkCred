@@ -11,7 +11,7 @@ export async function GET() {
     console.log("route reached")
     await connectDB();
 
-    const candidates = await Candidate.find().lean();
+    const candidates = await Candidate.find().select("-password").lean();
     console.log("candidates:",candidates)
 
     return NextResponse.json(
