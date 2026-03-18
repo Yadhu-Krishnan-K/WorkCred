@@ -119,7 +119,7 @@ export const ProfileHeader = ({ candidate, isUploading, handleUpload, setFile, o
             <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100">
               <FaAward />
             </div>
-            <span className="text-sm font-bold text-slate-700">{candidate?.qualification || "MSc Computer Science"}</span>
+            <span className="text-sm font-bold text-slate-700">{candidate?.qualification || "Qualification not added"}</span>
           </div>
         </div>
       </div>

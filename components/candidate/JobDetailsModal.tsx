@@ -122,9 +122,9 @@ export default function JobDetailsModal({ job, onClose }: { job: JobDocument; on
             >
               Apply Now
             </button>
-            <button className="px-6 py-4 rounded-2xl border-2 border-slate-100 text-slate-400 hover:bg-slate-50 transition-all">
+            {/* <button className="px-6 py-4 rounded-2xl border-2 border-slate-100 text-slate-400 hover:bg-slate-50 transition-all">
               Save
-            </button>
+            </button> */}
           </div>
         </div>
       </motion.div>

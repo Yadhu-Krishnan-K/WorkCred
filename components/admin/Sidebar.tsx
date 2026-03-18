@@ -40,10 +40,10 @@ export const Sidebar = ({ activeTab, setActiveTab, onLogout }: any) => {
       </div>
 
       <nav className="flex-grow space-y-1.5">
-        <NavItem icon={<LayoutDashboard size={20} />} label="Overview" active={activeTab === 'over'} onClick={() => setActiveTab('over')} />
+        <NavItem icon={<LayoutDashboard size={20} />} label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
         <NavItem icon={<Users size={20} />} label="Manage Users" active={activeTab === 'users'} onClick={() => setActiveTab('users')} />
-        <NavItem icon={<Building2 size={20} />} label="Companies" active={activeTab === 'cos'} onClick={() => setActiveTab('cos')} />
-        <NavItem icon={<Settings size={20} />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+        <NavItem icon={<Building2 size={20} />} label="Companies" active={activeTab === 'companies'} onClick={() => setActiveTab('companies')} />
+        {/* <NavItem icon={<Settings size={20} />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} /> */}
       </nav>
 
       <button onClick={onLogout} className="mt-auto flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-red-400 transition-all group">

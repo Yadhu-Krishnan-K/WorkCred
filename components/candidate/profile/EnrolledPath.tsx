@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 
 interface EnrolledPathProps {
@@ -29,12 +31,12 @@ export const EnrolledPath = ({ stream, createdAt }: EnrolledPathProps) => {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <span className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em]">Enrolled Path</span>
-            <h4 className="text-4xl font-black italic mt-1">{stream || "General Track"}</h4>
+            <h4 className="text-4xl font-black italic mt-1">{stream || "Enroll in one"}</h4>
           </div>
           <div className="bg-white/10 backdrop-blur-lg border border-white/10 p-6 rounded-2xl">
             <p className="text-[10px] text-emerald-400 font-bold uppercase mb-1">Status</p>
             <p className="text-lg font-bold">Verified professional</p>
-            <p className="text-xs text-slate-400 mt-2">Member since {createdAt ? dateConversion(createdAt) : "2025"}</p>
+            <p className="text-xs text-slate-400 mt-2">Member since {createdAt ? dateConversion(createdAt) : "___"}</p>
           </div>
         </div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full -mr-20 -mt-20 blur-3xl" />
