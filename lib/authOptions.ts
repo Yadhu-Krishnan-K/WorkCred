@@ -1,14 +1,25 @@
 
 import type { NextAuthOptions } from "next-auth";
+import { signIn, signOut } from 'next-auth/react';
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from "bcryptjs";
 
 import { connectDB } from "@/lib/db";
 import companymodel from "@/model/companymodel";
 import candidatemodel from "@/model/candidatemodel";
 
+// FOR GOOGLE AUTH
+export const handleSignIn = () => signIn('google');
+export const handleSignOut = () => signOut();
+
 export const authOptions: NextAuthOptions = {
   providers: [
+    //================== GOOGLE AUTH ===================
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     // ================= COMPANY LOGIN =================
     CredentialsProvider({
       id: "company-credentials",
@@ -133,13 +144,17 @@ export const authOptions: NextAuthOptions = {
         throw new Error("Invalid admin credentials");
       },
     }),
+
   ],
 
+  // pages: {
+  //   signIn: "/auth/login",
+  //   error: "/auth/login",
+  // },
   pages: {
-    signIn: "/auth/login",
-    error: "/auth/login",
+    signIn: "/login/candidate",
+    error: "/login/candidate",
   },
-
   session: {
     strategy: "jwt",
   },
@@ -147,6 +162,36 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        await connectDB();
+
+        const existing = await candidatemodel.findOne({
+          email: user.email,
+        });
+        console.log('user exists ===== ',existing)
+
+        if (!existing) {
+          console.log('.....................')
+          const newUser = await candidatemodel.create({
+            email: user.email,
+            fullName: user.name,
+            isVerified: true,
+            isBlocked: false,
+            password: "",
+          });
+
+          // ONLY here we define role for GOOGLE users
+          (user as any).role = "CANDIDATE";
+          (user as any).id = newUser._id.toString();
+        } else {
+          (user as any).role = "CANDIDATE";
+          (user as any).id = existing._id.toString();
+        }
+      }
+
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = (user as any).id;

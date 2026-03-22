@@ -124,6 +124,15 @@ export default function CandidateLoginPage() {
             Register
           </span>
         </p>
+        <p className="text-center">--OR--</p>
+        <div className="w-full flex justify-center items-center mt-5">
+          <button
+          onClick={()=>signIn("google")}
+          className="px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+        >
+          Sign in with Google
+        </button>
+        </div>
       </div>
     </div>
   );
