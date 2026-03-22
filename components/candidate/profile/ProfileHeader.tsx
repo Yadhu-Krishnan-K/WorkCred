@@ -98,7 +98,7 @@ export const ProfileHeader = ({ candidate, isUploading, handleUpload, setFile, o
           </div>
         </div>
         <p className="text-slate-500 font-medium max-w-2xl leading-relaxed italic">
-          "{candidate?.description || "Building the future of digital experiences."}"
+          "{candidate?.description || "No description added yet"}"
         </p>
       </div>
 
@@ -106,11 +106,14 @@ export const ProfileHeader = ({ candidate, isUploading, handleUpload, setFile, o
         <div className="space-y-3">
           <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Core Expertise</p>
           <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-            {(candidate?.skills || ["React", "Next.js", "AI"]).map((skill: string, index: number) => (
+            {candidate?.skills.length
+            ?(candidate?.skills).map((skill: string, index: number) => (
               <span key={index} className="px-4 py-2 bg-slate-900 text-white text-[11px] font-bold rounded-xl shadow-sm">
                 {skill}
               </span>
-            ))}
+            ))
+            :"none added"
+            }
           </div>
         </div>
         <div className="space-y-3">

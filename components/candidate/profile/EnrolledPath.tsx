@@ -5,9 +5,10 @@ import { motion } from "framer-motion";
 interface EnrolledPathProps {
   stream: string | undefined;
   createdAt: string;
+  isVerified: boolean;
 }
 
-export const EnrolledPath = ({ stream, createdAt }: EnrolledPathProps) => {
+export const EnrolledPath = ({ stream, createdAt, isVerified }: EnrolledPathProps) => {
   const dateConversion = (ymd: string) => {
     const date = new Date(ymd.split("T")[0]);
     return date.toLocaleDateString('en-US', {
@@ -35,7 +36,9 @@ export const EnrolledPath = ({ stream, createdAt }: EnrolledPathProps) => {
           </div>
           <div className="bg-white/10 backdrop-blur-lg border border-white/10 p-6 rounded-2xl">
             <p className="text-[10px] text-emerald-400 font-bold uppercase mb-1">Status</p>
-            <p className="text-lg font-bold">Verified professional</p>
+            <p className="text-lg font-bold">
+              {isVerified?"Verified professional":"Your not verified yet"}
+              </p>
             <p className="text-xs text-slate-400 mt-2">Member since {createdAt ? dateConversion(createdAt) : "___"}</p>
           </div>
         </div>

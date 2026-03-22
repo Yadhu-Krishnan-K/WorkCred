@@ -289,6 +289,7 @@ export default function CandidateProfile() {
               <EnrolledPath
                 createdAt={candidate!.createdAt}
                 stream={candidate!.stream}
+                isVerified={candidate!.isVerified}
               />
 
               <FeedbackSection
@@ -305,12 +306,6 @@ export default function CandidateProfile() {
           </div>
 
         </main>
-
-        {/* <footer className="py-10 border-t border-gray-100 text-center">
-          <p className="text-xs text-gray-400">
-            © 2026 <span className="font-bold text-slate-700 uppercase">WorkCred</span>
-          </p>
-        </footer> */}
 
         <EditProfileModal
           isOpen={isModalOpen}

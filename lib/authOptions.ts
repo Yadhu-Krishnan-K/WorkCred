@@ -47,11 +47,13 @@ export const authOptions: NextAuthOptions = {
           name: company.companyName,
           email: company.email,
           role: "COMPANY",
+          isVerified: company.isVerified,
+          isBlocked: company.isBlocked,
         };
       },
     }),
 
-    // ================= CANDIDATE LOGIN =================
+    // ================= CANDIDATE LOGIN ===============
     CredentialsProvider({
       id: "candidate-credentials",
       name: "Candidate Credentials",
@@ -89,8 +91,46 @@ export const authOptions: NextAuthOptions = {
           name: candidate.fullName,
           email: candidate.email,
           role: "CANDIDATE",
-          stream:candidate.stream||null
+          stream: candidate.stream || null,
+          isVerified: candidate.isVerified,
+          isBlocked: candidate.isBlocked,
         };
+      },
+    }),
+
+    // ================= ADMIN LOIGN ===================
+    CredentialsProvider({
+      id: "admin-credentials",
+      name: "Admin Credentials",
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email and password are required");
+        }
+
+        // Hardcoded check (for initial setup/single admin)
+        const isAdminEmail = credentials.email === process.env.ADMIN_EMAIL;
+        const isAdminPass = credentials.password === process.env.ADMIN_PASSWORD;
+
+        if (!isAdminEmail || !isAdminPass) {
+          throw new Error("Invalid email or password");
+        }
+
+        if (isAdminEmail && isAdminPass) {
+          return {
+            id: "admin_id_001",
+            name: "System Admin",
+            email: credentials.email,
+            role: "ADMIN",
+            isVerified: true,
+            isBlocked: false,
+          };
+        }
+
+        throw new Error("Invalid admin credentials");
       },
     }),
   ],
@@ -112,6 +152,10 @@ export const authOptions: NextAuthOptions = {
         token.id = (user as any).id;
         token.role = (user as any).role;
         token.stream = (user as any)?.stream || null;
+
+        // ✅ NEW
+        token.isVerified = (user as any).isVerified;
+        token.isBlocked = (user as any).isBlocked;
       }
       return token;
     },
@@ -120,7 +164,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
-        (session.user as any).stream = token.stream; // ⭐ add this
+        (session.user as any).stream = token.stream;
       }
       return session;
     },
