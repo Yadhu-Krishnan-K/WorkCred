@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
 import { motion } from "framer-motion";
+import Navbar from "@/components/navbar/company"; // ✅ USING YOUR NAVBAR
 import {
   FaBuilding,
   FaAward,
@@ -14,7 +15,7 @@ import {
 } from "react-icons/fa";
 
 /* =====================
-   Type (MATCH BACKEND)
+   Type
 ===================== */
 
 type Company = {
@@ -40,8 +41,8 @@ export default function CompanyProfile() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  /* Edit modal state */
   const [isEditing, setIsEditing] = useState(false);
+
   const [form, setForm] = useState({
     companyName: "",
     companyType: "",
@@ -50,9 +51,7 @@ export default function CompanyProfile() {
     city: "",
   });
 
-  /* =====================
-     Fetch company
-  ===================== */
+  /* ===================== FETCH ===================== */
 
   useEffect(() => {
     const fetchCompany = async () => {
@@ -60,7 +59,8 @@ export default function CompanyProfile() {
         const res = await fetch("/api/profile/company", {
           credentials: "include",
         });
-        if (!res.ok) throw new Error("Failed to fetch company");
+
+        if (!res.ok) throw new Error("Failed to fetch");
 
         const data: Company = await res.json();
         setCompany(data);
@@ -74,7 +74,8 @@ export default function CompanyProfile() {
     fetchCompany();
   }, []);
 
-  /* Sync edit form */
+  /* Sync form */
+
   useEffect(() => {
     if (company) {
       setForm({
@@ -87,15 +88,14 @@ export default function CompanyProfile() {
     }
   }, [company]);
 
-  /* =====================
-     Upload handler
-  ===================== */
+  /* ===================== UPLOAD ===================== */
 
   const handleUpload = async () => {
     if (!file) return;
 
     try {
       setUploading(true);
+
       const formData = new FormData();
       formData.append("file", file);
 
@@ -120,9 +120,7 @@ export default function CompanyProfile() {
     }
   };
 
-  /* =====================
-     Save profile edits
-  ===================== */
+  /* ===================== SAVE ===================== */
 
   const handleSaveProfile = async () => {
     try {
@@ -142,14 +140,12 @@ export default function CompanyProfile() {
     }
   };
 
-  /* =====================
-     Loading states
-  ===================== */
+  /* ===================== LOADING ===================== */
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-400">
-        Loading company profile…
+        Loading company profile...
       </div>
     );
   }
@@ -162,79 +158,62 @@ export default function CompanyProfile() {
     );
   }
 
-  /* =====================
-     UI
-  ===================== */
+  /* ===================== UI ===================== */
 
   return (
-    <div className="relative min-h-screen flex flex-col overflow-hidden bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-amber-50">
 
-      {/* Background */}
-      <div className="absolute top-[-5%] right-[-5%] w-[35%] h-[35%] rounded-full bg-emerald-100/40 blur-[100px]" />
-      <div className="absolute bottom-[-5%] left-[-5%] w-[35%] h-[35%] rounded-full bg-amber-100/40 blur-[100px]" />
+      {/* ✅ NAVBAR */}
+      <Navbar />
 
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/70 border-b border-gray-200/50 flex items-center justify-between px-8 py-4">
-        <h1 className="text-2xl font-black bg-gradient-to-r from-amber-500 via-orange-600 to-red-500 bg-clip-text text-transparent">
-          WorkCred
-        </h1>
-        <div className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-50 border border-emerald-200">
-          <FaBuilding className="w-5 h-5 text-emerald-600" />
-        </div>
-      </nav>
+      <main className="max-w-6xl mx-auto px-6 py-12 space-y-10">
 
-      <main className="relative grow container mx-auto px-6 py-12 space-y-10">
-
-        {/* =====================
-            PROFILE HEADER
-        ===================== */}
+        {/* PROFILE CARD */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-white/80 backdrop-blur-md rounded-[2.5rem] p-8 border border-white shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-center gap-8"
+          className="bg-white/70 backdrop-blur rounded-3xl border border-emerald-100 shadow-xl p-8 flex flex-col md:flex-row gap-10 items-center relative"
         >
-          {/* Edit icon */}
+
+          {/* EDIT */}
           <button
             onClick={() => setIsEditing(true)}
-            className="absolute top-6 right-6 text-slate-400 hover:text-emerald-600 transition"
+            className="absolute right-6 top-6 text-slate-400 hover:text-emerald-600"
           >
             <FaEdit />
           </button>
 
-          {/* DP */}
-          <div className="relative w-32 h-32">
-            <div className="relative w-full h-full rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg overflow-hidden">
-              {company.profileImageUrl ? (
-                <Image
-                  src={company.profileImageUrl}
-                  alt="Company Profile"
-                  fill
-                  sizes="128px"
-                  className="object-cover"
-                />
-              ) : (
-                <FaBuilding className="w-16 h-16" />
-              )}
+          {/* IMAGE */}
+          <div className="relative w-32 h-32 rounded-[2rem] overflow-hidden bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white shadow-lg">
 
-              {uploading && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
+            {company.profileImageUrl ? (
+              <Image
+                src={company.profileImageUrl}
+                alt="company"
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <FaBuilding size={50} />
+            )}
+
+            {uploading && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
 
             <input
               id="companyProfileUpload"
               type="file"
               accept="image/*"
               className="hidden"
-              disabled={uploading}
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
 
             <label
               htmlFor="companyProfileUpload"
-              className="absolute -bottom-2 -left-2 bg-white text-gray-700 p-2 rounded-xl shadow-lg cursor-pointer hover:scale-105 transition"
+              className="absolute -bottom-2 -left-2 bg-white p-2 rounded-xl shadow cursor-pointer"
             >
               📷
             </label>
@@ -242,85 +221,102 @@ export default function CompanyProfile() {
             {file && !uploading && (
               <button
                 onClick={handleUpload}
-                className="absolute -bottom-2 -right-2 bg-amber-400 text-white p-2 rounded-xl shadow-lg hover:bg-amber-500 transition"
+                className="absolute -bottom-2 -right-2 bg-amber-500 text-white px-2 py-1 rounded-xl text-xs shadow"
               >
                 Upload
               </button>
             )}
 
-            <div className="absolute -top-2 -right-2 bg-amber-400 text-white p-2 rounded-xl shadow-lg">
+            <div className="absolute -top-2 -right-2 bg-amber-400 text-white p-2 rounded-xl shadow">
               <FaAward />
             </div>
+
           </div>
 
-          {/* Info */}
-          <div className="text-center md:text-left grow">
-            <h2 className="text-3xl font-black">{company.companyName}</h2>
+          {/* INFO */}
+          <div className="flex-1">
 
-            <p className="text-emerald-600 text-xs font-semibold uppercase tracking-widest mt-1">
-              {company.companyType} COMPANY
+            <h2 className="text-4xl font-black text-slate-900">
+              {company.companyName}
+            </h2>
+
+            <p className="text-xs uppercase font-bold tracking-widest text-emerald-600 mt-1">
+              {company.companyType} Company
             </p>
 
-            <p className="mt-3 text-sm text-slate-500 max-w-md">
+            <p className="mt-4 text-slate-500 max-w-xl text-sm leading-relaxed">
               {company.description || "No description added yet."}
             </p>
 
-            {/* ✅ CITY ADDED (ONLY NEW LINE) */}
-            <p className="mt-2 text-xs font-bold uppercase text-slate-400 tracking-widest">
-              {company.city || "City not specified"}
-            </p>
+            <div className="grid grid-cols-2 gap-6 mt-6 text-sm">
+
+              <div>
+                <p className="text-xs text-slate-400 font-bold uppercase">Email</p>
+                <p className="font-semibold">{company.email}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-slate-400 font-bold uppercase">City</p>
+                <p className="font-semibold">{company.city || "Not specified"}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-slate-400 font-bold uppercase">Website</p>
+                <p className="font-semibold">{company.website || "Not added"}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-slate-400 font-bold uppercase">Member Since</p>
+                <p className="font-semibold">
+                  {new Date(company.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+
+            </div>
+
           </div>
+
         </motion.section>
 
-        {/* =====================
-            STATUS CARD
-        ===================== */}
-        <div>
-          <h3 className="text-xl font-bold flex items-center gap-2 mb-6">
-            <span className="w-2 h-6 bg-emerald-500 rounded-full" />
-            Company Status
-          </h3>
+        {/* STATUS + ACTION */}
+        <div className="grid md:grid-cols-2 gap-8">
 
-          <motion.div className="bg-slate-900 rounded-[2rem] p-8 text-white shadow-2xl">
-            <p className="text-[10px] text-emerald-400 uppercase font-black">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 rounded-3xl shadow-xl">
+
+            <p className="text-xs uppercase text-emerald-400 font-bold">
               Account Status
             </p>
-            <h4 className="text-4xl font-black italic mt-1">
+
+            <h3 className="text-3xl font-black mt-2">
               Active Employer
-            </h4>
+            </h3>
+
             <p className="text-slate-400 mt-2">
-              Member since{" "}
-              {new Date(company.createdAt).toLocaleString("en-US", {
-                month: "long",
-                year: "numeric",
-              })}
+              Verified company on WorkCred
             </p>
-          </motion.div>
-        </div>
 
-        {/* =====================
-            DASHBOARD BUTTON
-        ===================== */}
-        <div className="max-w-sm">
-         <button
-  onClick={() => router.push("/dashboard")}
-  className="w-full py-4 rounded-2xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-500 shadow-lg shadow-emerald-100 transition-all flex items-center justify-center gap-2"
->
-  Open Dashboard <FaArrowRight />
-</button>
+          </div>
+
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="bg-gradient-to-r from-emerald-500 to-green-400 text-white rounded-3xl p-8 flex items-center justify-center gap-3 font-black shadow-lg hover:scale-105 transition"
+          >
+            Open Dashboard <FaArrowRight />
+          </button>
 
         </div>
+
       </main>
 
-      {/* =====================
-          EDIT MODAL
-      ===================== */}
+      {/* MODAL */}
       {isEditing && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-[2rem] w-full max-w-xl p-8 shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+
+          <div className="bg-white/80 backdrop-blur rounded-3xl w-full max-w-xl p-8 relative shadow-xl">
+
             <button
               onClick={() => setIsEditing(false)}
-              className="absolute top-5 right-5 text-gray-400 hover:text-gray-700"
+              className="absolute right-5 top-5 text-gray-400"
             >
               <FaTimes />
             </button>
@@ -330,81 +326,41 @@ export default function CompanyProfile() {
             </h3>
 
             <div className="space-y-4">
-              <input
-                value={form.companyName}
-                onChange={(e) =>
-                  setForm({ ...form, companyName: e.target.value })
-                }
-                className="w-full border rounded-xl px-4 py-3"
-                placeholder="Company Name"
-              />
 
-              <select
-                value={form.companyType}
-                onChange={(e) =>
-                  setForm({ ...form, companyType: e.target.value })
-                }
-                className="w-full border rounded-xl px-4 py-3"
-              >
+              <input className="w-full border rounded-xl px-4 py-3" value={form.companyName} onChange={(e)=>setForm({...form,companyName:e.target.value})} />
+              <select className="w-full border rounded-xl px-4 py-3" value={form.companyType} onChange={(e)=>setForm({...form,companyType:e.target.value})}>
                 <option value="IT">IT</option>
                 <option value="MEDICAL">Medical</option>
                 <option value="AUTOMOBILE">Automobile</option>
                 <option value="AGRICULTURE">Agriculture</option>
                 <option value="OTHERS">Others</option>
               </select>
+              <input className="w-full border rounded-xl px-4 py-3" value={form.city} onChange={(e)=>setForm({...form,city:e.target.value})} />
+              <input className="w-full border rounded-xl px-4 py-3" value={form.website} onChange={(e)=>setForm({...form,website:e.target.value})} />
+              <textarea rows={4} className="w-full border rounded-xl px-4 py-3" value={form.description} onChange={(e)=>setForm({...form,description:e.target.value})} />
 
-              <input
-                value={form.city}
-                onChange={(e) =>
-                  setForm({ ...form, city: e.target.value })
-                }
-                className="w-full border rounded-xl px-4 py-3"
-                placeholder="City"
-              />
-
-              <input
-                value={form.website}
-                onChange={(e) =>
-                  setForm({ ...form, website: e.target.value })
-                }
-                className="w-full border rounded-xl px-4 py-3"
-                placeholder="Website"
-              />
-
-              <textarea
-                rows={4}
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-                className="w-full border rounded-xl px-4 py-3 resize-none"
-                placeholder="Description"
-              />
             </div>
 
             <div className="flex justify-end gap-3 mt-8">
-              <button
-                onClick={() => setIsEditing(false)}
-                className="px-5 py-3 rounded-xl text-slate-500"
-              >
+
+              <button onClick={()=>setIsEditing(false)} className="px-5 py-3 text-slate-500">
                 Cancel
               </button>
+
               <button
                 onClick={handleSaveProfile}
-                className="px-6 py-3 rounded-xl bg-emerald-600 text-white font-black hover:bg-emerald-500"
+                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-400 text-white rounded-xl font-bold shadow hover:scale-105 transition"
               >
                 Save Changes
               </button>
+
             </div>
+
           </div>
+
         </div>
       )}
 
-      <footer className="py-10 border-t border-gray-100 text-center">
-        <p className="text-xs text-gray-400">
-          © 2026 <span className="font-bold">WorkCred</span>
-        </p>
-      </footer>
     </div>
   );
 }
