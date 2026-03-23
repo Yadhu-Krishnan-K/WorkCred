@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 import { connectDB } from "@/lib/db"
 import Candidate from "@/model/candidatemodel"
 import Company from "@/model/companymodel"
 
 export async function PATCH(req: Request) {
+  const session = await getServerSession(authOptions);
+
+  // Authorization Check
+  if (!session || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+  }
+  
   try {
 
     await connectDB()

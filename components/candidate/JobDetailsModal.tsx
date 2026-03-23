@@ -4,7 +4,7 @@ import { JobDocument } from "@/model/jobmodel";
 import { motion } from "framer-motion";
 import { FaTimes, FaBriefcase, FaMapMarkerAlt, FaMoneyBillWave, FaClock } from "react-icons/fa";
 
-export default function JobDetailsModal({ job, onClose }: { job: JobDocument; onClose: () => void }) {
+export default function JobDetailsModal({ job, onClose }: { job: any; onClose: () => void }) {
 
   const applyForJob = async () => {
     try {
@@ -13,12 +13,12 @@ export default function JobDetailsModal({ job, onClose }: { job: JobDocument; on
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           connectId: job._id,
-          companyId: job.companyId,
+          companyId: job.companyId._id,
           connectType: "JOB",
           message: `Applying for ${job.role}`,
         }),
       });
-      console.log('res>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>',res)
+      console.log('res>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', res)
       const data = await res.json();
 
       if (!res.ok) {
@@ -117,14 +117,20 @@ export default function JobDetailsModal({ job, onClose }: { job: JobDocument; on
           </div>
 
           <div className="mt-10 flex gap-4">
-            <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-2xl shadow-lg shadow-emerald-200 transition-all active:scale-95"
+            <button
+              className={`flex-1 font-black py-4 rounded-2xl shadow-lg transition-all 
+                ${job.applied
+                  ? "bg-slate-200 text-slate-500 cursor-not-allowed shadow-none" // Applied/Disabled state
+                  : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-200 active:scale-95" // Default state
+                }`}
               onClick={applyForJob}
+              disabled={job.applied} // Prevents the function from firing
             >
-              Apply Now
+              {job.applied ? "Applied" : "Apply Now"}
             </button>
-            <button className="px-6 py-4 rounded-2xl border-2 border-slate-100 text-slate-400 hover:bg-slate-50 transition-all">
+            {/* <button className="px-6 py-4 rounded-2xl border-2 border-slate-100 text-slate-400 hover:bg-slate-50 transition-all">
               Save
-            </button>
+            </button> */}
           </div>
         </div>
       </motion.div>

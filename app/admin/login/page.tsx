@@ -1,157 +1,203 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, ShieldCheck, ArrowRight, User, AlertCircle } from "lucide-react";
-
-interface AdminLoginData {
-  email: string;
-  password: string;
-}
+import { signIn } from "next-auth/react"; // Use NextAuth!
+import { Lock, ShieldCheck, ArrowRight, User, AlertCircle, Sparkles } from "lucide-react";
 
 export default function AdminLogin() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // Track errors
-  const [adminLoginData, setAdminLoginData] = useState<AdminLoginData>({
-    email: "",
-    password: ""
-  });
+  const [errorMessage, setErrorMessage] = useState("");
+  const [adminLoginData, setAdminLoginData] = useState({ email: "", password: "" });
+
+  // Mouse tracking for subtle "tilt" effect on the card
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useTransform(y, [-100, 100], [10, -10]);
+  const rotateY = useTransform(x, [-100, 100], [-10, 10]);
+
+  function handleMouseMove(event: React.MouseEvent) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set(event.clientX - centerX);
+    y.set(event.clientY - centerY);
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setErrorMessage(""); // Clear previous errors
+    setErrorMessage("");
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(adminLoginData)
+      // Logic: Using NextAuth instead of a raw fetch to /api/admin/login
+      const result = await signIn("admin-credentials", {
+        email: adminLoginData.email,
+        password: adminLoginData.password,
+        redirect: false,
       });
 
-      const data = await res.json(); // Fix 1: Must await the json parsing
-
-      if (res.ok) {
-        // Success: Redirect
-        router.push("/admin/dashboard");
-      } else {
-        // Logic Error: Show the error message from the API
-        setErrorMessage(data.error || "Authentication failed");
+      if (result?.error) {
+        setErrorMessage(result.error);
         setLoading(false);
+      } else {
+        router.push("/admin/dashboard"); // Success redirect
       }
     } catch (error) {
-      // Network/Server Error
-      console.error('Login Error: ', error);
-      setErrorMessage("Something went wrong. Please try again.");
+      setErrorMessage("System breach detected. Try again.");
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b] relative overflow-hidden text-white">
-      {/* Mesmerizing Background Orbs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-amber-600/20 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-red-900/10 rounded-full blur-[120px]" />
+    <div className="min-h-screen flex items-center justify-center bg-[#050505] relative overflow-hidden text-white selection:bg-amber-500/40">
+      
+      {/* --- Dynamic Background Layer --- */}
+      <div className="absolute inset-0 z-0">
+        {/* Animated Orbs */}
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1], 
+            x: [0, 50, 0], 
+            opacity: [0.3, 0.5, 0.3] 
+          }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute -top-20 -left-20 w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.3, 1], 
+            x: [0, -50, 0], 
+            opacity: [0.2, 0.4, 0.2] 
+          }}
+          transition={{ duration: 10, repeat: Infinity, delay: 1 }}
+          className="absolute -bottom-20 -right-20 w-[600px] h-[600px] bg-orange-900/10 rounded-full blur-[120px]" 
+        />
+        
+        {/* Grid Pattern Overlay */}
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(white,transparent_85%)] opacity-10 pointer-events-none" />
+      </div>
 
+      {/* --- Main Content Layer --- */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md p-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-10 w-full max-w-lg p-6"
       >
-        {/* Logo/Header */}
-        <div className="text-center mb-10">
+        {/* Floating Header */}
+        <div className="text-center mb-8">
           <motion.div
-            initial={{ y: -20 }}
-            animate={{ y: 0 }}
-            className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 mb-4 shadow-[0_0_30px_rgba(245,158,11,0.3)]"
+            initial={{ rotate: -10, scale: 0.8 }}
+            animate={{ rotate: 0, scale: 1 }}
+            className="inline-block relative"
           >
-            <ShieldCheck className="w-8 h-8 text-white" />
+            <div className="absolute inset-0 bg-amber-500 blur-2xl opacity-20 animate-pulse" />
+            <div className="relative p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md mb-4">
+              <ShieldCheck className="w-10 h-10 text-amber-500" />
+            </div>
           </motion.div>
-          <h1 className="text-3xl font-black text-white tracking-tight">
-            Admin <span className="text-amber-500">Portal</span>
+          
+          <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">
+            Command <span className="text-amber-500 not-italic">Center</span>
           </h1>
-          <p className="text-gray-400 mt-2 text-sm">Secure authorization required</p>
+          <div className="flex items-center justify-center gap-2 mt-2 text-gray-500">
+            <Sparkles size={14} className="text-amber-600" />
+            <span className="text-xs font-bold tracking-[0.3em] uppercase">Secure Interface v2.0</span>
+          </div>
         </div>
 
-        {/* Glassmorphic Card */}
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-          <form onSubmit={handleLogin} className="space-y-6">
-            
-            {/* Error Message Display */}
+        {/* --- Tilt-Enabled Glass Card --- */}
+        <motion.div
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => { x.set(0); y.set(0); }}
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+          className="bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-10 shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative group"
+        >
+          {/* Subtle Inner Glow */}
+          <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
+
+          <form onSubmit={handleLogin} className="space-y-8 relative z-10">
+            {/* Error Message */}
             {errorMessage && (
               <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-xs flex items-center gap-2"
+                layoutId="error"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl text-xs font-bold flex items-center gap-3 backdrop-blur-md"
               >
-                <AlertCircle className="w-4 h-4" />
+                <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <AlertCircle className="w-4 h-4" />
+                </div>
                 {errorMessage}
               </motion.div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Identity</label>
-              <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-amber-500 transition-colors" />
-                <input
-                  type="email" // Changed to email for better validation
-                  placeholder="Admin Email"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-all"
-                  onChange={(e) => setAdminLoginData({ ...adminLoginData, email: e.target.value })}
-                  value={adminLoginData.email}
-                  required
-                />
+            <div className="space-y-6">
+              {/* Email Input */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-amber-500/60 uppercase tracking-[0.2em] ml-1">Auth ID</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 transition-colors group-focus-within:text-amber-500" />
+                  <input
+                    type="email"
+                    placeholder="admin@workcred.com"
+                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-14 pr-4 text-white placeholder:text-gray-700 outline-none focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 transition-all text-sm font-medium"
+                    onChange={(e) => setAdminLoginData({ ...adminLoginData, email: e.target.value })}
+                    value={adminLoginData.email}
+                    required
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Access Key</label>
-              <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-amber-500 transition-colors" />
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-all"
-                  onChange={(e) => setAdminLoginData({ ...adminLoginData, password: e.target.value })}
-                  value={adminLoginData.password}
-                  required
-                />
+              {/* Password Input */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-amber-500/60 uppercase tracking-[0.2em] ml-1">Security Key</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 transition-colors group-focus-within:text-amber-500" />
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-14 pr-4 text-white placeholder:text-gray-700 outline-none focus:border-amber-500/50 focus:ring-4 focus:ring-amber-500/10 transition-all text-sm font-medium"
+                    onChange={(e) => setAdminLoginData({ ...adminLoginData, password: e.target.value })}
+                    value={adminLoginData.password}
+                    required
+                  />
+                </div>
               </div>
             </div>
 
             <motion.button
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               disabled={loading}
               type="submit"
-              className="w-full relative overflow-hidden group bg-gradient-to-r from-amber-500 to-orange-600 py-4 rounded-xl font-bold text-white shadow-lg shadow-amber-600/20 transition-all hover:shadow-amber-600/40 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full group relative py-5 rounded-2xl font-black text-sm uppercase tracking-widest overflow-hidden transition-all shadow-2xl shadow-amber-600/20 hover:shadow-amber-600/40"
             >
-              <span className="flex items-center justify-center gap-2">
+              {/* Button Background Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 bg-[length:200%_100%] group-hover:bg-[100%_0%] transition-all duration-700" />
+              
+              <span className="relative flex items-center justify-center gap-3">
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    Initialize Session <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    Grant Access <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </span>
             </motion.button>
           </form>
-        </div>
+        </motion.div>
 
-        <p className="text-center mt-8">
-          <button 
-            onClick={() => router.push("/")}
-            className="text-gray-500 hover:text-white text-sm transition-colors"
-          >
-            ← Return to public site
-          </button>
-        </p>
+        {/* Footer Nav */}
+        <div className="flex justify-between items-center px-4 mt-8">
+           <button onClick={() => router.push("/")} className="text-gray-600 hover:text-white text-[10px] uppercase font-bold tracking-widest transition-colors">
+            ← Main Site
+           </button>
+           <span className="text-[10px] text-gray-800 font-mono italic">Encrypted Connection</span>
+        </div>
       </motion.div>
     </div>
   );
