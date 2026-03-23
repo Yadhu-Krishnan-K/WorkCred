@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { FaBuilding, FaCheckCircle, FaArrowDown, FaRocket } from "react-icons/fa";
+import { FaBuilding, FaCheckCircle, FaCross, FaArrowDown, FaRocket } from "react-icons/fa";
 
 export const AcceptedRequests = ({ companies, onSelectCompany }: { companies: any[], onSelectCompany: (c: any) => void }) => (  <aside>
     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2 mb-6">

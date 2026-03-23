@@ -14,7 +14,9 @@ export const FeedbackSection = ({ ratings }: { ratings: Rating[] }) => (
       Past Feedback Given
     </h3>
     <div className="grid gap-4">
-      {ratings.map((rate, i) => (
+      {
+      ratings.length?
+      ratings.map((rate, i) => (
         <div key={i} className="group bg-white border border-slate-100 p-6 rounded-3xl hover:border-amber-200 transition-colors">
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-3">
@@ -32,7 +34,11 @@ export const FeedbackSection = ({ ratings }: { ratings: Rating[] }) => (
           <p className="text-slate-500 text-sm leading-relaxed italic">"{rate.comment}"</p>
           <p className="text-[10px] text-slate-400 mt-4 font-bold uppercase tracking-tighter">{rate.date}</p>
         </div>
-      ))}
+      ))
+      :(<div className="flex-1 p-5">
+        <p>no ratings</p>
+      </div>)
+      }
     </div>
   </div>
 );

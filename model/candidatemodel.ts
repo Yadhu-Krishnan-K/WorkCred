@@ -41,12 +41,12 @@ const CandidateSchema = new Schema<CandidateDocument>(
 
     password: {
       type: String,
-      required: true,
+      required: false,
     },
 
     isVerified: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     isBlocked: {
       type: Boolean,

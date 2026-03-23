@@ -1,47 +1,110 @@
 "use client";
-import { motion } from "framer-motion";
-import { FaTimes, FaBuilding, FaGlobe, FaUsers, FaExternalLinkAlt } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { FaTimes, FaMapMarkerAlt, FaBriefcase, FaShieldAlt, FaExternalLinkAlt } from "react-icons/fa";
 
 export default function CompanyDetailsModal({ co, onClose }: { co: any; onClose: () => void }) {
+  if (!co) return null;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
+      {/* Backdrop */}
       <motion.div 
-        initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }}
-        className="relative w-full max-w-lg bg-white rounded-[2.5rem] p-10 shadow-2xl overflow-hidden"
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }} 
+        onClick={onClose} 
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl" 
+      />
+
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+        animate={{ scale: 1, opacity: 1, y: 0 }} 
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        className="relative w-full max-w-xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-white/20"
       >
-        {/* Background Accent */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
-        
-        <div className="relative z-10">
-            <div className="w-20 h-20 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center text-3xl font-black text-slate-300 mb-6">
-                {co.name[0]}
+        {/* Decorative Top Bar / Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-6 right-6 z-50 p-3 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-600"
+        >
+          <FaTimes size={18} />
+        </button>
+
+        {/* Header Section with Gradient Background */}
+        <div className="relative h-32 bg-gradient-to-r from-indigo-600 to-violet-600">
+          <div className="absolute -bottom-10 left-10 p-1 bg-white rounded-[2rem] shadow-xl">
+            <div className="relative w-24 h-24 rounded-[1.8rem] overflow-hidden bg-slate-50 flex items-center justify-center border border-slate-100">
+              {co.profileImageUrl ? (
+                <Image 
+                  src={co.profileImageUrl} 
+                  alt={co.companyName} 
+                  fill 
+                  className="object-cover"
+                />
+              ) : (
+                <span className="text-4xl font-black text-indigo-200">{co.companyName[0]}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="pt-16 p-10">
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+                {co.companyName}
+              </h2>
+              {co.isVerified && (
+                <FaShieldAlt className="text-blue-500 mt-1" title="Verified Company" />
+              )}
             </div>
             
-            <h2 className="text-4xl font-black text-slate-900 mb-2">{co.name}</h2>
-            <div className="flex gap-4 text-slate-400 text-sm mb-8">
-                <span className="flex items-center gap-1"><FaGlobe /> Website</span>
-                <span className="flex items-center gap-1"><FaUsers /> 10k+ Employees</span>
+            <div className="flex flex-wrap gap-4 text-slate-500 text-sm font-semibold">
+              <span className="flex items-center gap-1.5 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                <FaMapMarkerAlt className="text-indigo-500" /> {co.city || "Remote"}
+              </span>
+              <span className="flex items-center gap-1.5 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                <FaBriefcase className="text-indigo-500" /> {co.companyType} Industry
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-8">
+            {/* About Section */}
+            <div>
+              <h4 className="text-[10px] font-black uppercase text-indigo-600 tracking-[0.25em] mb-3">
+                Company Profile
+              </h4>
+              <p className="text-slate-600 text-base leading-relaxed font-medium">
+                {co.description || `Welcome to ${co.companyName}. We are a leading entity in the ${co.companyType} sector, committed to excellence and professional growth.`}
+              </p>
             </div>
 
-            <div className="space-y-6">
-                <div>
-                    <h4 className="text-xs font-black uppercase text-amber-600 tracking-[0.2em] mb-2">About the Company</h4>
-                    <p className="text-slate-500 text-sm leading-relaxed">
-                        A global leader in innovation, {co.name} is known for fostering a culture of excellence and 
-                        cutting-edge technological advancement.
-                    </p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-amber-50 border border-amber-100">
-                    <p className="text-xs font-bold text-amber-700">Recent Activity</p>
-                    <p className="text-sm text-amber-900 mt-1 font-medium">Hiring for 12 roles in your specialization.</p>
-                </div>
-
-                <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-xl">
-                    CRED CONNECT <FaExternalLinkAlt className="text-xs" />
-                </button>
+            {/* Visual Stats Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-3xl bg-indigo-50/50 border border-indigo-100/50">
+                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Type</p>
+                <p className="text-lg font-bold text-indigo-900">{co.companyType}</p>
+              </div>
+              <div className="p-4 rounded-3xl bg-emerald-50/50 border border-emerald-100/50">
+                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Status</p>
+                <p className="text-lg font-bold text-emerald-900">{co.isVerified ? "Verified" : "Active"}</p>
+              </div>
             </div>
+
+            {/* Action Button */}
+            {/* <div className="flex gap-3">
+              <button className="flex-[2] py-5 bg-slate-900 text-white rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-[0.98]">
+                Visit Official Portal <FaExternalLinkAlt className="text-xs opacity-50" />
+              </button>
+            </div> */}
+            
+            <p className="text-center text-[11px] text-slate-400 font-medium italic">
+              Member since {new Date(co.createdAt).getFullYear()}
+            </p>
+          </div>
         </div>
       </motion.div>
     </div>

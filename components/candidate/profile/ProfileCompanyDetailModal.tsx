@@ -67,7 +67,7 @@ export const ProfileCompanyDetailModal = ({ isOpen, onClose, company }: CompanyD
                 {company.companyType || "Enterprise"}
               </span>
               <span className="flex items-center gap-1 text-slate-400 text-xs font-medium">
-                <FaMapMarkerAlt /> {company.location || "Remote / Global"}
+                <FaMapMarkerAlt /> {company.city || "Remote / Global"}
               </span>
             </div>
           </div>
@@ -85,7 +85,7 @@ export const ProfileCompanyDetailModal = ({ isOpen, onClose, company }: CompanyD
               <h5 className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase mb-3 tracking-widest">
                 <FaCalendarAlt className="text-blue-500" /> Joined Network
               </h5>
-              <p className="text-slate-700 font-semibold">January 2026</p>
+              <p className="text-slate-700 font-semibold">{company.createdAt}</p>
             </div>
           </div>
 
@@ -98,14 +98,14 @@ export const ProfileCompanyDetailModal = ({ isOpen, onClose, company }: CompanyD
           </div>
 
           {/* Action Footer */}
-          <div className="mt-10 pt-8 border-t border-slate-100 flex items-center justify-between">
+          {/* <div className="mt-10 pt-8 border-t border-slate-100 flex items-center justify-between">
             <button className="flex items-center gap-2 text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
               <FaGlobe /> Visit Website
             </button>
             <button className="px-8 py-3 bg-slate-900 text-white text-sm font-bold rounded-2xl hover:bg-slate-800 shadow-lg shadow-slate-200 transition-all flex items-center gap-2">
               View All Openings <FaExternalLinkAlt className="text-[10px]" />
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

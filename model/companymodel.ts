@@ -3,18 +3,18 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface CompanyDocument extends Document {
   companyName: string;
   email: string;
-  password:string;
-  companyType: string;
+  password: string;
+  companyType: string;  
   isVerified: boolean;
   isBlocked: boolean;
   createdAt: Date;
   updatedAt: Date;
-   description:string;
-   city:string;
+  description: string;
+  city: string;
 
   profileImageUrl?: string;
   profileImagePublicId?: string;
-  
+
 }
 
 const CompanySchema = new Schema<CompanyDocument>(
@@ -32,15 +32,15 @@ const CompanySchema = new Schema<CompanyDocument>(
       lowercase: true,
     },
     password: {
-  type: String,
-  required: true,
-},
- description: {
+      type: String,
+      required: true,
+    },
+    description: {
       type: String,
       default: "",
       maxlength: 1000,
     },
-profileImageUrl: {
+    profileImageUrl: {
       type: String,
       default: null,
     },
@@ -49,10 +49,10 @@ profileImageUrl: {
       type: String,
       default: null,
     },
-     city: {
-  type: String,
+    city: {
+      type: String,
 
-},
+    },
 
 
     companyType: {

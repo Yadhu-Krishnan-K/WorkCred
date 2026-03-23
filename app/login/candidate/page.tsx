@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useError } from "@/app/ErrorContext";
 
 export default function CandidateLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
-  const { data: session } = useSession()
+  const { setError } = useError();
+
+  const { data: session } = useSession();
 
   const [userData, setUserData] = useState({
     email: "",
@@ -17,23 +19,35 @@ export default function CandidateLoginPage() {
 
   const [loading, setLoading] = useState(false);
 
+  // ✅ Handle middleware errors (?error=blocked etc)
   useEffect(() => {
-    if(!session) return
+    const error = searchParams.get("error");
 
-    if (session.user.role !== "CANDIDATE") {
-      // router.replace("/auth/login"); // or show unauthorized
-      return;
+    if (error === "blocked") {
+      setError({ message: "Your account has been blocked by admin" });
     }
-    
+
+    if (error === "unauthorized") {
+      setError({ message: "Please login first" });
+    }
+
+    if (error === "not_verified") {
+      setError({ message: "You're account is not verified yet, please wait until admin verifies it" });
+    }
+  }, [searchParams, setError]);
+
+  // ✅ Redirect if already logged in
+  useEffect(() => {
+    if (!session) return;
+
+    if (session.user.role !== "CANDIDATE") return;
+
     if (session?.user?.stream) {
       router.replace("/home/enrolled");
-    }else{
-
-      router.replace("/home/candidate")
+    } else {
+      router.replace("/home/candidate");
     }
   }, [session, router]);
-
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,8 +61,11 @@ export default function CandidateLoginPage() {
 
     setLoading(false);
 
-    if (!res?.ok) alert("Invalid email or password");
-    
+    // ✅ Use centralized error instead of alert
+    if (!res?.ok) {
+      setError({ message: "Invalid email or password" });
+      return;
+    }
   };
 
   return (
@@ -63,11 +80,8 @@ export default function CandidateLoginPage() {
           Login to access your candidate dashboard
         </p>
 
-        {error && (
-          <p className="mt-3 text-sm text-red-500">
-            Login failed. Please try again.
-          </p>
-        )}
+        {/* ❌ REMOVE this (handled globally now) */}
+        {/* {error && <p className="text-red-500">...</p>} */}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <input
@@ -110,6 +124,15 @@ export default function CandidateLoginPage() {
             Register
           </span>
         </p>
+        <p className="text-center">--OR--</p>
+        <div className="w-full flex justify-center items-center mt-5">
+          <button
+          onClick={()=>signIn("google")}
+          className="px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+        >
+          Sign in with Google
+        </button>
+        </div>
       </div>
     </div>
   );
