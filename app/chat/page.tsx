@@ -355,7 +355,7 @@ export default function ChatPage() {
   useEffect(() => {
     async function loadMessages() {
       const res = await fetch(
-        `NEXT_PUBLIC_BACKEND_URL/api/chat/${senderId}/${receiverId}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/${senderId}/${receiverId}`
       );
       const data = await res.json();
       setMessages(data);

@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     type
   });
 
-  await fetch("NEXT_PUBLIC_BACKEND_URL/api/notifications", {
+  await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
