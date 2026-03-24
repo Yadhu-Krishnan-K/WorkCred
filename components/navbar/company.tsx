@@ -182,7 +182,7 @@ export default function Navbar() {
     console.log("🔔 Company socket registered:", company._id);
 
     // Load old notifications
-    fetch(`http://localhost:4000/api/notifications/${company._id}`)
+    fetch(`NEXT_PUBLIC_BACKEND_URL/api/notifications/${company._id}`)
       .then((res) => res.json())
       .then((data) => {
         const unread = data.filter(
