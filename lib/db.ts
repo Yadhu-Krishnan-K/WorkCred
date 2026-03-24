@@ -16,7 +16,7 @@ export async function connectDB(){
             dbName:"WorkCred"
         })
         await seedAdmin()
-        console.log("db successfully connected")
+        console.log("db successfully connected ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
     } catch (error) {
         console.log("connection error",error)
         
