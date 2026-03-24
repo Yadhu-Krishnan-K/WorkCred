@@ -85,6 +85,7 @@ export const authOptions: NextAuthOptions = {
         const candidate = await candidatemodel.findOne({
           email: credentials.email,
         });
+        console.log('candidate ===⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️',candidate)
 
         if (!candidate) {
           throw new Error("Candidate not found");
@@ -98,6 +99,8 @@ export const authOptions: NextAuthOptions = {
           credentials.password,
           candidate.password
         );
+
+        console.log('password match..... = ',ok)
 
         if (!ok) {
           throw new Error("Invalid password");
