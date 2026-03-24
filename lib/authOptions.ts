@@ -1,4 +1,3 @@
-
 import type { NextAuthOptions } from "next-auth";
 import { signIn, signOut } from 'next-auth/react';
 import CredentialsProvider from "next-auth/providers/credentials";
