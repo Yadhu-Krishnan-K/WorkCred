@@ -45,7 +45,7 @@ export async function PATCH(
 
     // 🔔 Notify candidate (NON-BLOCKING)
     if (candidateId) {
-      fetch("http://localhost:4000/api/notifications", {
+      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

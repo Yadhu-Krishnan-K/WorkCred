@@ -76,7 +76,7 @@ export async function POST(req: Request) {
      * This will NOT break apply if it fails
      */
     try {
-      await fetch("http://localhost:4000/api/notifications", {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
