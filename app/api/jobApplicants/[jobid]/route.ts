@@ -7,7 +7,7 @@ import "@/model/candidatemodel"; // required for populate
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { jobid: string } }
+  context: { params: Promise<{ jobid: string }> }
 ) {
   console.log("->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
   try {
@@ -21,7 +21,7 @@ export async function GET(
       );
     }
 
-    const { jobid } = await params;
+    const { jobid } = await context.params;
 
     // 2️⃣ DB connect
     await connectDB();
