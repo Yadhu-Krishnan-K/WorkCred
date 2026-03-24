@@ -78,7 +78,9 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email and password are required");
         }
 
+        console.log('db connecting.....')
         await connectDB();
+
 
         const candidate = await candidatemodel.findOne({
           email: credentials.email,
@@ -87,7 +89,11 @@ export const authOptions: NextAuthOptions = {
         if (!candidate) {
           throw new Error("Candidate not found");
         }
-
+        
+        if (!candidate.password) {
+          throw new Error("Please login using Google");
+        }
+        
         const ok = await bcrypt.compare(
           credentials.password,
           candidate.password
@@ -192,6 +198,7 @@ export const authOptions: NextAuthOptions = {
 
       return true;
     },
+
     async jwt({ token, user }) {
       if (user) {
         token.id = (user as any).id;
