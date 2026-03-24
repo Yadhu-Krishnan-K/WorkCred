@@ -41,7 +41,7 @@ export default function NotificationsPage() {
 
         // Fetch notifications
         const notifRes = await fetch(
-          `NEXT_PUBLIC_BACKEND_URL/api/notifications/${userId}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications/${userId}`
         );
 
         const notifData = await notifRes.json();
@@ -65,7 +65,7 @@ export default function NotificationsPage() {
 
       // Mark as read
       await fetch(
-        `NEXT_PUBLIC_BACKEND_URL/api/notifications/${n._id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications/${n._id}`,
         {
           method: "PUT",
         }

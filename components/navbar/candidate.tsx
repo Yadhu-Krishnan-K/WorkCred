@@ -66,7 +66,7 @@ export default function Navbar() {
     console.log("🔔 Socket registered:", user._id);
 
     // Load old notifications
-    fetch(`NEXT_PUBLIC_BACKEND_URL/api/notifications/${user._id}`)
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications/${user._id}`)
       .then((res) => res.json())
       .then((data) => {
         const unread = data.filter(
