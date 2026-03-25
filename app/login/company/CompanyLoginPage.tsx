@@ -125,20 +125,19 @@ export default function LoginPage() {
 
   /* ---------------- 🔁 SESSION REDIRECT ---------------- */
 
-  useEffect(() => {
-    console.log("🧠 LOGIN useEffect triggered");
+ useEffect(() => {
+  console.log("🧠 LOGIN useEffect triggered");
 
-    if (status === "loading") {
-      console.log("⏳ Session loading...");
-      return;
+  if (status === "loading") return;
+
+  if (status === "authenticated") {
+    if (window.location.pathname !== "/home/company") {
+      console.log("✅ Redirecting safely...");
+      router.replace("/home/company");
     }
+  }
 
-    if (status === "authenticated") {
-      console.log("✅ Already authenticated → redirecting to home");
-      router.push("/home/company");
-    }
-
-  }, [status, router]);
+}, [status, router]);
 
   /* ---------------- 🚀 LOGIN HANDLER ---------------- */
 
@@ -163,8 +162,7 @@ export default function LoginPage() {
     if (res?.ok) {
       console.log("✅ signIn success");
 
-      // ❗ IMPORTANT FIX (no immediate push)
-      router.refresh();
+    
 
     } else {
       console.log("❌ signIn failed:", res?.error);
