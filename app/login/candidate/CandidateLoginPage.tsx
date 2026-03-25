@@ -61,11 +61,14 @@ export default function CandidateLoginPage() {
 
     setLoading(false);
 
-    // ✅ Use centralized error instead of alert
+    // ❌ error case
     if (!res?.ok) {
       setError({ message: "Invalid email or password" });
       return;
     }
+
+    // ✅ FIX: manual redirect (THIS WAS MISSING)
+    router.push("/home/candidate");
   };
 
   return (
@@ -79,9 +82,6 @@ export default function CandidateLoginPage() {
         <p className="mt-2 text-gray-600">
           Login to access your candidate dashboard
         </p>
-
-        {/* ❌ REMOVE this (handled globally now) */}
-        {/* {error && <p className="text-red-500">...</p>} */}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <input
@@ -124,15 +124,18 @@ export default function CandidateLoginPage() {
             Register
           </span>
         </p>
+
         <p className="text-center">--OR--</p>
+
         <div className="w-full flex justify-center items-center mt-5">
           <button
-          onClick={()=>signIn("google")}
-          className="px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-        >
-          Sign in with Google
-        </button>
+            onClick={() => signIn("google")}
+            className="px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          >
+            Sign in with Google
+          </button>
         </div>
+
       </div>
     </div>
   );
