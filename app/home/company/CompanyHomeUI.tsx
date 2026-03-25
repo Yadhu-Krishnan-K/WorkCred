@@ -295,11 +295,10 @@ export default function CompanyWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ✅ SESSION ADDED
   const { data: session, status } = useSession();
 
-  console.log("🔥 [HOME PAGE] session status:", status);
-  console.log("🔥 [HOME PAGE] session data:", session);
+  console.log("🔥 [HOME PAGE] status:", status);
+  console.log("🔥 [HOME PAGE] session:", session);
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -312,34 +311,51 @@ export default function CompanyWorkspace() {
   const [viewingCandidate, setViewingCandidate] = useState<any | null>(null);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
 
-  /* ---------------- 🔐 AUTH GUARD ---------------- */
+  /* ---------------- 🔐 AUTH GUARD (FIXED) ---------------- */
 
   useEffect(() => {
 
-    console.log("🧠 AUTH CHECK TRIGGERED");
+    console.log("🧠 AUTH CHECK START");
 
+    // ✅ WAIT until session is ready
     if (status === "loading") {
-      console.log("⏳ Session still loading...");
+      console.log("⏳ Waiting for session...");
       return;
     }
 
+    // ❌ Not logged in
     if (status === "unauthenticated") {
-      console.log("❌ No session → redirecting to login");
-      router.push("/login/company");
+      console.log("❌ Not authenticated → redirect");
+      router.replace("/login/company");
       return;
     }
 
-    console.log("✅ Authenticated user:", session?.user);
-
-    if (session?.user?.role !== "COMPANY") {
-      console.log("❌ Not a COMPANY → redirecting");
-      router.push("/login/company");
+    // ⚠️ Session exists but user not yet ready (rare but safe)
+    if (!session?.user) {
+      console.log("⚠️ Session exists but no user yet");
       return;
     }
 
-    console.log("🎉 COMPANY ACCESS GRANTED");
+    // ❌ Wrong role
+    if (session.user.role !== "COMPANY") {
+      console.log("❌ Wrong role:", session.user.role);
+      router.replace("/login/company");
+      return;
+    }
+
+    console.log("✅ COMPANY ACCESS GRANTED");
 
   }, [status, session, router]);
+
+  /* ---------------- ⏳ BLOCK UI UNTIL AUTH READY ---------------- */
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Checking authentication...
+      </div>
+    );
+  }
 
   /* ---------------- READ URL PARAMS ---------------- */
 
@@ -351,7 +367,6 @@ export default function CompanyWorkspace() {
     const tab = searchParams.get("tab");
 
     if (job && tab === "job-posts") {
-      console.log("➡️ Switching to job-posts tab:", job);
       setActiveTab("job-posts");
       setSelectedId(job);
     }
@@ -373,8 +388,6 @@ export default function CompanyWorkspace() {
           fetch("/api/jobs")
         ]);
 
-        console.log("📡 API RESPONSES:", candisRes.status, jobsRes.status);
-
         const candisJson = await candisRes.json();
         const jobsJson = await jobsRes.json();
 
@@ -390,7 +403,6 @@ export default function CompanyWorkspace() {
 
       } finally {
 
-        console.log("✅ INIT FETCH DONE");
         setLoading(false);
 
       }
@@ -405,11 +417,7 @@ export default function CompanyWorkspace() {
 
   useEffect(() => {
 
-    console.log("📥 Fetch applicants triggered");
-
     if (selectedId && activeTab === "job-posts") {
-
-      console.log("➡️ Fetching applicants for job:", selectedId);
 
       const fetchApplicants = async () => {
 
@@ -418,10 +426,7 @@ export default function CompanyWorkspace() {
         try {
 
           const res = await fetch(`/api/jobApplicants/${selectedId}`);
-          console.log("📡 Applicants API status:", res.status);
-
           const json = await res.json();
-          console.log("📊 Applicants data:", json);
 
           setActiveJobApplicants(json.data || json || []);
 
@@ -441,7 +446,6 @@ export default function CompanyWorkspace() {
 
     } else {
 
-      console.log("⚠️ No job selected / wrong tab");
       setActiveJobApplicants([]);
 
     }
@@ -462,16 +466,12 @@ export default function CompanyWorkspace() {
 
   async function approveCandidate(id: any) {
 
-    console.log("✅ Approving candidate:", id);
-
     try {
 
       const res = await fetch(
         `/api/credConnect/company/job/accepted/${id}`,
         { method: "PATCH" }
       );
-
-      console.log("📡 Approve API status:", res.status);
 
       if (!res.ok) throw new Error("Update failed!");
 
@@ -492,7 +492,7 @@ export default function CompanyWorkspace() {
 
     } catch (error) {
 
-      console.error("❌ Approve error:", error);
+      console.error(error);
       alert("Error updating status");
 
     }
@@ -503,16 +503,12 @@ export default function CompanyWorkspace() {
 
   async function declineCandidate(id: any) {
 
-    console.log("❌ Declining candidate:", id);
-
     try {
 
       const res = await fetch(
         `/api/credConnect/company/job/rejected/${id}`,
         { method: "PATCH" }
       );
-
-      console.log("📡 Decline API status:", res.status);
 
       if (!res.ok) throw new Error("Update failed!");
 
@@ -533,18 +529,11 @@ export default function CompanyWorkspace() {
 
     } catch (error) {
 
-      console.error("❌ Decline error:", error);
+      console.error(error);
       alert("Error rejecting");
 
     }
 
-  }
-
-  /* ---------------- LOADING GUARD ---------------- */
-
-  if (status === "loading") {
-    console.log("⏳ Rendering loading screen...");
-    return <div className="p-10 text-gray-500">Checking authentication...</div>;
   }
 
   /* ---------------- UI ---------------- */
