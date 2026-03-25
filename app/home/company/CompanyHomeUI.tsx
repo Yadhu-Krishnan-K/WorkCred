@@ -313,39 +313,18 @@ export default function CompanyWorkspace() {
 
   /* ---------------- 🔐 AUTH GUARD (FIXED) ---------------- */
 
-  useEffect(() => {
+useEffect(() => {
 
-    console.log("🧠 AUTH CHECK START");
+  if (status === "loading") return;
 
-    // ✅ WAIT until session is ready
-    if (status === "loading") {
-      console.log("⏳ Waiting for session...");
-      return;
-    }
+  if (status === "unauthenticated") {
+    console.log("❌ Not logged in");
+    return; // ❗ DO NOT REDIRECT
+  }
 
-    // ❌ Not logged in
-    if (status === "unauthenticated") {
-      console.log("❌ Not authenticated → redirect");
-      router.replace("/login/company");
-      return;
-    }
+  console.log("✅ USER OK:", session?.user);
 
-    // ⚠️ Session exists but user not yet ready (rare but safe)
-    if (!session?.user) {
-      console.log("⚠️ Session exists but no user yet");
-      return;
-    }
-
-    // ❌ Wrong role
-    if (session.user.role !== "COMPANY") {
-      console.log("❌ Wrong role:", session.user.role);
-      router.replace("/login/company");
-      return;
-    }
-
-    console.log("✅ COMPANY ACCESS GRANTED");
-
-  }, [status, session, router]);
+}, [status, session]);
 
   /* ---------------- ⏳ BLOCK UI UNTIL AUTH READY ---------------- */
 

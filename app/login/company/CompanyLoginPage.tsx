@@ -125,21 +125,17 @@ export default function LoginPage() {
 
   /* ---------------- 🔁 SESSION REDIRECT ---------------- */
 
- useEffect(() => {
-  console.log("🧠 LOGIN useEffect triggered");
-
-  if (status === "loading") return;
-
+useEffect(() => {
   if (status === "authenticated") {
-    console.log("✅ Redirecting safely...");
+    console.log("✅ Redirecting ONCE");
 
-    // 🔥 CRITICAL FIX
-    setTimeout(() => {
-      window.location.href = "/home/company";
-    }, 100);
+    // 🔥 Prevent multiple redirects
+    if (sessionStorage.getItem("redirected")) return;
 
+    sessionStorage.setItem("redirected", "true");
+
+    window.location.href = "/home/company";
   }
-
 }, [status]);
 
   /* ---------------- 🚀 LOGIN HANDLER ---------------- */
