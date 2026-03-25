@@ -292,10 +292,21 @@ export async function proxy(req: NextRequest) {
   // 🔁 LOGGED-IN USERS ACCESSING LOGIN PAGE
   // =========================================================
   if (token && isAuthPage) {
-    const config = roleConfig[token.role as keyof typeof roleConfig];
-    const destination = config?.dashboard || "/";
-    return NextResponse.redirect(new URL(destination, req.url));
+  const config = roleConfig[token.role as keyof typeof roleConfig];
+
+  let destination = config?.dashboard || "/";
+
+  // 🔥 HANDLE CANDIDATE STREAM
+  if (token.role === "CANDIDATE") {
+    if ((token as any).stream) {
+      destination = "/home/enrolled";
+    } else {
+      destination = "/home/candidate";
+    }
   }
+
+  return NextResponse.redirect(new URL(destination, req.url));
+}
 
   // =========================================================
   // 🌐 PUBLIC ROUTES
