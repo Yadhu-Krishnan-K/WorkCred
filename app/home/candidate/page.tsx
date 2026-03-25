@@ -1,8 +1,8 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
-import { redirect } from "next/navigation";
-import { connectDB } from "@/lib/db";
-import candidatemodel from "@/model/candidatemodel";
+// import { getServerSession } from "next-auth";
+// import { authOptions } from "@/lib/authOptions";
+// import { redirect } from "next/navigation";
+// import { connectDB } from "@/lib/db";
+// import candidatemodel from "@/model/candidatemodel";
 import CandidateUI from "./CandidateUI";
 
 export default async function CandidateHomePage() {
@@ -13,7 +13,7 @@ export default async function CandidateHomePage() {
   //   redirect("/login/candidate");
   // }
 
-  await connectDB();
+  // await connectDB();
 
   // const candidate = await candidatemodel.findById(session.user.id);
 
