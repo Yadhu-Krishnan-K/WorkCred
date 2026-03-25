@@ -111,7 +111,10 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
-  const { status } = useSession();
+  const { status, data: session } = useSession();
+
+  console.log("🔥 [LOGIN PAGE] status:", status);
+  console.log("🔥 [LOGIN PAGE] session:", session);
 
   const [data, setData] = useState({
     email: "",
@@ -120,14 +123,31 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
 
+  /* ---------------- 🔁 SESSION REDIRECT ---------------- */
+
   useEffect(() => {
+    console.log("🧠 LOGIN useEffect triggered");
+
+    if (status === "loading") {
+      console.log("⏳ Session loading...");
+      return;
+    }
+
     if (status === "authenticated") {
+      console.log("✅ Already authenticated → redirecting to home");
       router.push("/home/company");
     }
+
   }, [status, router]);
+
+  /* ---------------- 🚀 LOGIN HANDLER ---------------- */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    console.log("🚀 Login attempt started");
+    console.log("📧 Email:", data.email);
+
     setLoading(true);
 
     const res = await signIn("company-credentials", {
@@ -136,22 +156,34 @@ export default function LoginPage() {
       redirect: false,
     });
 
+    console.log("📡 signIn response:", res);
+
     setLoading(false);
 
     if (res?.ok) {
-      router.push("/home/company");
+      console.log("✅ signIn success");
+
+      // ❗ IMPORTANT FIX (no immediate push)
+      router.refresh();
+
     } else {
+      console.log("❌ signIn failed:", res?.error);
       alert("Invalid email or password");
     }
   };
 
+  /* ---------------- ⏳ LOADING SCREEN ---------------- */
+
   if (status === "loading") {
+    console.log("⏳ Rendering loading UI...");
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
         Checking session...
       </div>
     );
   }
+
+  /* ---------------- UI ---------------- */
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-orange-50 via-white to-amber-50">

@@ -254,6 +254,7 @@ import Navbar from "@/components/navbar/company";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react"; // ✅ ADDED
 
 import LeftPanel from "@/components/companyWorkspace/LeftPanel";
 import RightPanel from "@/components/companyWorkspace/RightPanel";
@@ -294,6 +295,12 @@ export default function CompanyWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // ✅ SESSION ADDED
+  const { data: session, status } = useSession();
+
+  console.log("🔥 [HOME PAGE] session status:", status);
+  console.log("🔥 [HOME PAGE] session data:", session);
+
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [activeTab, setActiveTab] = useState<ViewMode>("top-candidates");
@@ -305,14 +312,46 @@ export default function CompanyWorkspace() {
   const [viewingCandidate, setViewingCandidate] = useState<any | null>(null);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
 
+  /* ---------------- 🔐 AUTH GUARD ---------------- */
+
+  useEffect(() => {
+
+    console.log("🧠 AUTH CHECK TRIGGERED");
+
+    if (status === "loading") {
+      console.log("⏳ Session still loading...");
+      return;
+    }
+
+    if (status === "unauthenticated") {
+      console.log("❌ No session → redirecting to login");
+      router.push("/login/company");
+      return;
+    }
+
+    console.log("✅ Authenticated user:", session?.user);
+
+    if (session?.user?.role !== "COMPANY") {
+      console.log("❌ Not a COMPANY → redirecting");
+      router.push("/login/company");
+      return;
+    }
+
+    console.log("🎉 COMPANY ACCESS GRANTED");
+
+  }, [status, session, router]);
+
   /* ---------------- READ URL PARAMS ---------------- */
 
   useEffect(() => {
+
+    console.log("📌 Reading URL params");
 
     const job = searchParams.get("job");
     const tab = searchParams.get("tab");
 
     if (job && tab === "job-posts") {
+      console.log("➡️ Switching to job-posts tab:", job);
       setActiveTab("job-posts");
       setSelectedId(job);
     }
@@ -323,6 +362,8 @@ export default function CompanyWorkspace() {
 
   useEffect(() => {
 
+    console.log("🚀 INIT FETCH STARTED");
+
     async function initFetch() {
 
       try {
@@ -332,18 +373,24 @@ export default function CompanyWorkspace() {
           fetch("/api/jobs")
         ]);
 
+        console.log("📡 API RESPONSES:", candisRes.status, jobsRes.status);
+
         const candisJson = await candisRes.json();
         const jobsJson = await jobsRes.json();
+
+        console.log("📊 Candidates:", candisJson);
+        console.log("📊 Jobs:", jobsJson);
 
         setCandidates(candisJson.data || []);
         setJobs(jobsJson || []);
 
       } catch (e) {
 
-        console.error("Init fetch error:", e);
+        console.error("❌ Init fetch error:", e);
 
       } finally {
 
+        console.log("✅ INIT FETCH DONE");
         setLoading(false);
 
       }
@@ -358,7 +405,11 @@ export default function CompanyWorkspace() {
 
   useEffect(() => {
 
+    console.log("📥 Fetch applicants triggered");
+
     if (selectedId && activeTab === "job-posts") {
+
+      console.log("➡️ Fetching applicants for job:", selectedId);
 
       const fetchApplicants = async () => {
 
@@ -367,13 +418,16 @@ export default function CompanyWorkspace() {
         try {
 
           const res = await fetch(`/api/jobApplicants/${selectedId}`);
+          console.log("📡 Applicants API status:", res.status);
+
           const json = await res.json();
+          console.log("📊 Applicants data:", json);
 
           setActiveJobApplicants(json.data || json || []);
 
         } catch (e) {
 
-          console.error("Applicants fetch error:", e);
+          console.error("❌ Applicants fetch error:", e);
 
         } finally {
 
@@ -387,6 +441,7 @@ export default function CompanyWorkspace() {
 
     } else {
 
+      console.log("⚠️ No job selected / wrong tab");
       setActiveJobApplicants([]);
 
     }
@@ -407,12 +462,16 @@ export default function CompanyWorkspace() {
 
   async function approveCandidate(id: any) {
 
+    console.log("✅ Approving candidate:", id);
+
     try {
 
       const res = await fetch(
         `/api/credConnect/company/job/accepted/${id}`,
         { method: "PATCH" }
       );
+
+      console.log("📡 Approve API status:", res.status);
 
       if (!res.ok) throw new Error("Update failed!");
 
@@ -433,16 +492,18 @@ export default function CompanyWorkspace() {
 
     } catch (error) {
 
-      console.error(error);
+      console.error("❌ Approve error:", error);
       alert("Error updating status");
 
     }
 
   }
 
-  /* ---------------- DECLINE CANDIDATE (NEW) ---------------- */
+  /* ---------------- DECLINE CANDIDATE ---------------- */
 
   async function declineCandidate(id: any) {
+
+    console.log("❌ Declining candidate:", id);
 
     try {
 
@@ -450,6 +511,8 @@ export default function CompanyWorkspace() {
         `/api/credConnect/company/job/rejected/${id}`,
         { method: "PATCH" }
       );
+
+      console.log("📡 Decline API status:", res.status);
 
       if (!res.ok) throw new Error("Update failed!");
 
@@ -470,11 +533,18 @@ export default function CompanyWorkspace() {
 
     } catch (error) {
 
-      console.error(error);
+      console.error("❌ Decline error:", error);
       alert("Error rejecting");
 
     }
 
+  }
+
+  /* ---------------- LOADING GUARD ---------------- */
+
+  if (status === "loading") {
+    console.log("⏳ Rendering loading screen...");
+    return <div className="p-10 text-gray-500">Checking authentication...</div>;
   }
 
   /* ---------------- UI ---------------- */
@@ -490,8 +560,6 @@ export default function CompanyWorkspace() {
         className="h-screen bg-gradient-to-br from-white via-slate-50 to-slate-100 flex overflow-hidden relative"
       >
 
-        {/* LEFT SIDEBAR */}
-
         <LeftPanel
           candidates={candidates}
           jobs={jobs}
@@ -504,8 +572,6 @@ export default function CompanyWorkspace() {
           setSearchQuery={setSearchQuery}
         />
 
-        {/* RIGHT CONTENT */}
-
         <RightPanel
           activeTab={activeTab}
           selectedCandidate={selectedCandidate}
@@ -516,13 +582,11 @@ export default function CompanyWorkspace() {
           setViewingCandidate={setViewingCandidate}
         />
 
-        {/* MODAL */}
-
         <CandidateModal
           viewingCandidate={viewingCandidate}
           setViewingCandidate={setViewingCandidate}
           approveCandidate={approveCandidate}
-          declineCandidate={declineCandidate}   // ✅ ADDED HERE
+          declineCandidate={declineCandidate}
         />
 
       </motion.div>
