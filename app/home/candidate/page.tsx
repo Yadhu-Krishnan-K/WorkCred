@@ -18,9 +18,9 @@ export default async function CandidateHomePage() {
   const candidate = await candidatemodel.findById(session.user.id);
 
   // Already enrolled
-  if (candidate?.paymentStatus === "SUCCESS") {
-    redirect("/home/enrolled");
-  }
+  // if (candidate?.paymentStatus === "SUCCESS") {
+  //   redirect("/home/enrolled");
+  // }
 
   return <CandidateUI />;
 }
