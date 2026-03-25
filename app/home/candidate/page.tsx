@@ -6,16 +6,16 @@ import candidatemodel from "@/model/candidatemodel";
 import CandidateUI from "./CandidateUI";
 
 export default async function CandidateHomePage() {
-  const session = await getServerSession(authOptions);
+  // const session = await getServerSession(authOptions);
 
   // Not logged in
-  if (!session || session.user.role !== "CANDIDATE") {
-    redirect("/login/candidate");
-  }
+  // if (!session || session.user.role !== "CANDIDATE") {
+  //   redirect("/login/candidate");
+  // }
 
   await connectDB();
 
-  const candidate = await candidatemodel.findById(session.user.id);
+  // const candidate = await candidatemodel.findById(session.user.id);
 
   // Already enrolled
   // if (candidate?.paymentStatus === "SUCCESS") {
