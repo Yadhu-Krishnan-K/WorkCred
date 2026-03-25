@@ -131,13 +131,16 @@ export default function LoginPage() {
   if (status === "loading") return;
 
   if (status === "authenticated") {
-    if (window.location.pathname !== "/home/company") {
-      console.log("✅ Redirecting safely...");
-      router.replace("/home/company");
-    }
+    console.log("✅ Redirecting safely...");
+
+    // 🔥 CRITICAL FIX
+    setTimeout(() => {
+      window.location.href = "/home/company";
+    }, 100);
+
   }
 
-}, [status, router]);
+}, [status]);
 
   /* ---------------- 🚀 LOGIN HANDLER ---------------- */
 
